@@ -1,0 +1,126 @@
+{
+ "_comment": "Meters. x west->east (0..7), z north->south (0..13), street to the north. Upper-floor z uses lot coordinates (its plan's 0 m = lot 4 m). Scale 2 = 1 block is 50 cm.",
+ "scale": 2,
+ "world": {"title": "Maison + rue (Tunisian, 1 block = 50 cm)", "ground_y": -61,
+           "forceload": [-40, -45, 70, 62], "spawn": [3, 2, -2], "border_center": [7, 4], "border_size": 60},
+ "palette": {"wall": "white_concrete", "slab": "white_concrete", "glass": "glass_pane",
+             "light": "sea_lantern", "door": "warped_trapdoor", "shutter": "warped_trapdoor"},
+ "door":   {"sill": 0,   "height": 2.0},
+ "window": {"sill": 1.0, "height": 1.0},
+
+ "levels": [
+  {"name": "ground", "floor_y": 1, "height": 2.5, "footprint": [0, 4, 7, 13], "voids": [],
+   "floors": [
+    {"rect": [0.5, 4.5, 4, 11],   "block": {"pattern": "rosette", "block": "light_blue_glazed_terracotta"}, "room": "Salle"},
+    {"rect": [4.5, 4.5, 7, 8],    "block": "smooth_sandstone", "room": "Chambre (child 1)"},
+    {"rect": [4.5, 8.5, 7, 11],   "block": {"pattern": "rosette", "block": "white_glazed_terracotta"}, "room": "Cuisine"},
+    {"rect": [0.5, 11.5, 4, 12],  "block": "smooth_sandstone", "room": "Couloir"},
+    {"rect": [0.5, 12.5, 2.5, 13],"block": "smooth_sandstone", "room": "Escalier"},
+    {"rect": [3, 12.5, 4, 13],    "block": "white_glazed_terracotta", "room": "WC"},
+    {"rect": [4.5, 11.5, 7, 13],  "block": "smooth_sandstone", "room": "Courette"}
+   ],
+   "walls": [[0,4,7,4],[0,13,7,13],[0,4,0,13],[7,4,7,13],[4,4,4,13],[4,8,7,8],[0,11,7,11],[0,12,4,12],[2.5,12,2.5,13]],
+   "openings": [
+    {"type": "door",   "line": ["z", 4],  "range": [1, 2],     "panel": {"side": 1, "hinge": "low"}, "note": "front door"},
+    {"type": "window", "line": ["z", 4],  "range": [2.5, 3.5], "shutters": -1},
+    {"type": "window", "line": ["z", 4],  "range": [5, 6.5],   "shutters": -1},
+    {"type": "door",   "line": ["x", 4],  "range": [4.5, 5.5], "panel": {"side": 1, "hinge": "low"}, "note": "Salle -> Chambre"},
+    {"type": "door",   "line": ["x", 4],  "range": [8.5, 9.5], "panel": {"side": 1, "hinge": "low"}, "note": "Salle -> Cuisine"},
+    {"type": "door",   "line": ["z", 11], "range": [1.5, 2.5], "panel": {"side": -1, "hinge": "low"}, "note": "Salle -> Couloir"},
+    {"type": "window", "line": ["z", 11], "range": [5, 6.5],   "note": "Cuisine -> Courette"},
+    {"type": "door",   "line": ["z", 12], "range": [0.5, 1.5], "note": "Couloir -> Escalier (open archway)"},
+    {"type": "door",   "line": ["z", 12], "range": [3, 4],     "panel": {"side": -1, "hinge": "low", "mode": "flat"}, "note": "Couloir -> WC"},
+    {"type": "window", "line": ["x", 4],  "range": [12.5, 13], "sill": 0.5, "height": 1.0, "note": "WC -> Courette"}
+   ],
+   "lights": [[2, 6], [2, 9], [5.5, 6], [5.5, 9.5], [2.5, 11.5]],
+   "furniture": [
+    {"type": "sofa", "rect": [0.5, 6, 1, 8], "back": "west"},
+    {"type": "coffee_table", "rect": [1.5, 6.5, 2, 7.5]},
+    {"type": "rug", "rect": [1, 5.5, 3, 8.5], "block": "blue_carpet"},
+    {"type": "tv", "rect": [3.5, 6, 4, 8], "wall": "east", "screen": [[3.5, 6.5], [3.5, 7]]},
+    {"type": "table", "rect": [1.5, 8.5, 2.5, 10], "chairs": ["west", "east"]},
+    {"type": "plant", "at": [3.5, 10.5]},
+    {"type": "plant", "at": [0.5, 10.5]},
+
+    {"type": "bed", "rect": [6, 6, 7, 8], "head": "south"},
+    {"type": "nightstand", "at": [5.5, 7.5]},
+    {"type": "desk", "rect": [4.5, 6, 5, 7], "chair": {"at": [5, 6], "back": "east"}},
+    {"type": "wardrobe", "rect": [6.5, 4.5, 7, 5.5], "front": "west"},
+
+    {"type": "counter", "rect": [4.5, 10.5, 7, 11], "front": "north",
+     "items": [{"at": [4.5, 10.5], "item": "oven"}, {"at": [5.5, 10.5], "item": "sink"}]},
+    {"type": "counter", "rect": [6.5, 9, 7, 10.5], "front": "west"},
+    {"type": "fridge", "at": [6.5, 8.5]},
+    {"type": "table", "rect": [5, 9.5, 6, 10], "chairs": ["north"]},
+
+    {"type": "toilet", "at": [3.5, 12.5], "back": "east"}
+   ]},
+
+  {"name": "upper", "floor_y": 7, "height": 2.5, "footprint": [0, 4, 7, 13],
+   "voids": [[4.5, 11.5, 7, 13], [0.5, 12.5, 3.5, 13]],
+   "floors": [
+    {"rect": [0.5, 4.5, 1, 8],     "block": "smooth_sandstone", "room": "Roof stair"},
+    {"rect": [1.5, 4.5, 4, 8],     "block": "smooth_sandstone", "room": "Chambre 1 (child 2)"},
+    {"rect": [4.5, 4.5, 7, 9],     "block": "smooth_sandstone", "room": "Chambre 2 (parents)"},
+    {"rect": [0.5, 8.5, 3, 12],    "block": "smooth_sandstone", "room": "Chambre 3 (child 3)"},
+    {"rect": [3.5, 9.5, 5, 11],    "block": "smooth_sandstone", "room": "Palier"},
+    {"rect": [3.5, 11, 4, 13],     "block": "smooth_sandstone", "room": "Palier / stair top"},
+    {"rect": [5.5, 9.5, 7, 11],    "block": {"pattern": "rosette", "block": "white_glazed_terracotta"}, "room": "WC"}
+   ],
+   "walls": [[0,4,7,4],[0,13,7,13],[0,4,0,13],[7,4,7,13],[1,4,1,8],[0,8,4,8],[4,4,4,9],[3,9,7,9],
+             [3,8,3,12],[3.5,8,3.5,9],[5,9,5,11],[4,11,7,11],[4,11,4,13],[0,12,3,12]],
+   "openings": [
+    {"type": "door",   "line": ["x", 1],  "range": [4.5, 5.5],  "panel": {"side": 1, "hinge": "low"}, "note": "Chambre 1 -> roof stair"},
+    {"type": "door",   "line": ["z", 8],  "range": [1.5, 2.5],  "panel": {"side": -1, "hinge": "low"}, "note": "Chambre 1 -> Chambre 3"},
+    {"type": "door",   "line": ["x", 3],  "range": [11, 12],    "panel": {"side": -1, "hinge": "low"}, "note": "Chambre 3 -> Palier"},
+    {"type": "door",   "line": ["x", 5],  "range": [10, 11],    "panel": {"side": 1, "hinge": "high"}, "note": "Palier -> WC"},
+    {"type": "door",   "line": ["z", 9],  "range": [4.5, 5.5],  "panel": {"side": -1, "hinge": "low"}, "note": "Palier -> Chambre 2"},
+    {"type": "window", "line": ["z", 4],  "range": [1.5, 3.5],  "shutters": -1},
+    {"type": "window", "line": ["z", 4],  "range": [5, 6.5],    "shutters": -1},
+    {"type": "window", "line": ["z", 11], "range": [5.5, 6.5],  "note": "WC -> Courette"},
+    {"type": "window", "line": ["x", 4],  "range": [11.5, 12.5],"note": "Palier -> Courette"}
+   ],
+   "lights": [[2.5, 6], [5.5, 6.5], [1.5, 10], [4, 10], [6, 10], [0.5, 4.5], [2, 12.5]],
+   "furniture": [
+    {"type": "barrel", "at": [3, 8.5], "front": "west", "note": "wardrobe D in the wall, Chambre 3 side"},
+    {"type": "barrel", "at": [4, 8.5], "front": "east", "note": "wardrobe D in the wall, Chambre 2 side"},
+
+    {"type": "bed", "rect": [3, 6, 4, 8], "head": "south", "blanket": "orange_carpet"},
+    {"type": "nightstand", "at": [2.5, 7.5]},
+    {"type": "desk", "rect": [1.5, 5.5, 2, 6.5], "chair": {"at": [2, 5.5], "back": "east"}},
+    {"type": "wardrobe", "rect": [3.5, 4.5, 4, 5.5], "front": "west"},
+
+    {"type": "bed", "rect": [5, 5.5, 7, 7], "head": "east", "blanket": "blue_carpet"},
+    {"type": "nightstand", "at": [6.5, 5]},
+    {"type": "nightstand", "at": [6.5, 7]},
+    {"type": "wardrobe", "rect": [5.5, 8.5, 7, 9], "front": "north"},
+    {"type": "rug", "rect": [4.5, 5.5, 5, 7], "block": "light_blue_carpet"},
+
+    {"type": "bed", "rect": [0.5, 9.5, 1.5, 11.5], "head": "south"},
+    {"type": "nightstand", "at": [1.5, 11]},
+    {"type": "desk", "rect": [2.5, 9.5, 3, 10.5], "chair": {"at": [2, 9.5], "back": "west"}},
+    {"type": "wardrobe", "rect": [0.5, 8.5, 1.5, 9], "front": "south"},
+
+    {"type": "shower", "rect": [6, 9.5, 7, 10], "glass": [[5.5, 9.5]], "head": [6.5, 9.5]},
+    {"type": "sink", "at": [6.5, 10]},
+    {"type": "toilet", "at": [6.5, 10.5], "back": "east"},
+    {"type": "plant", "at": [4.5, 9.5]}
+   ]}
+ ],
+
+ "roof": {"y": 13, "block": "white_concrete", "footprint": [0, 4, 7, 13],
+          "voids": [[4.5, 11.5, 7, 13], [0.5, 6.5, 1, 8]],
+          "parapet": {"height": 1.0, "lines": [[0,4,7,4],[0,13,7,13],[0,4,0,13],[7,4,7,13],[4,11,7,11],[4,11,4,13]]},
+          "railing": {"block": "oak_fence", "lines": [[1, 6, 1, 7.5], [0.5, 6, 0.5, 6]]}},
+
+ "stairs": [
+  {"name": "ground -> upper", "start": [1, 12.5], "dir": "east", "width": 0.5, "steps": 6, "base_y": 1, "block": "smooth_sandstone_stairs"},
+  {"name": "upper -> roof",   "start": [0.5, 5.5], "dir": "south", "width": 0.5, "steps": 6, "base_y": 7, "block": "smooth_sandstone_stairs"}
+ ],
+
+ "yard": {"rect": [0, 0, 7, 4], "ground": "grass_block", "wall": "white_concrete", "wall_height": 1.0, "gate": [1, 2], "path": "smooth_sandstone"},
+
+ "street": {"x_range": [-9, 16], "sidewalk": 1.5, "road": 6, "sidewalk_block": "smooth_stone", "curb_block": "stone",
+            "road_block": "gray_concrete", "line_block": "white_concrete",
+            "lamps": {"every": 8, "height": 4, "pole": "andesite_wall", "head": "sea_lantern"}}
+}

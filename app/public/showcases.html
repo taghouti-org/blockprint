@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Showcases · Blockprint</title>
+<link rel="stylesheet" href="/assets/site.css"><link rel="icon" href="/favicon.png">
+</head>
+<body>
+<section class="blueprint" style="padding:48px 0 40px">
+  <div class="wrap">
+    <div class="kicker">Gallery</div>
+    <h1 style="font-size:44px;margin:8px 0 6px">Showcases</h1>
+    <p style="color:#c6d6ee;max-width:640px;margin:0">Every house here was built from a floor plan. Open one to walk inside; anyone else exploring the same house at that moment appears next to you.</p>
+    <div style="display:flex;gap:8px;margin-top:22px;flex-wrap:wrap" id="filters"></div>
+  </div>
+</section>
+<section class="band" style="padding-top:36px">
+  <div class="wrap"><div class="grid" id="list"><p class="muted">Loading…</p></div></div>
+</section>
+<script src="/assets/site.js"></script>
+<script>
+header('showcases')
+let all = [], filter = 'all'
+function render () {
+  const l = all.filter(s => filter === 'all' || s.style === filter)
+  document.getElementById('list').innerHTML = l.map(showcaseCard).join('') || '<p class="muted">Nothing here yet. <a href="/create">Build one.</a></p>'
+}
+function filters () {
+  const styles = ['all', ...new Set(all.map(s => s.style).filter(Boolean))]
+  document.getElementById('filters').innerHTML = styles.map(s => `<button class="btn small ${s === filter ? '' : 'ghost'}" data-s="${s}" style="${s === filter ? '' : 'color:#cfe0ff'}">${s === 'all' ? 'All styles' : STYLE_LABEL[s] || s}</button>`).join('')
+  document.querySelectorAll('#filters button').forEach(b => b.onclick = () => { filter = b.dataset.s; filters(); render() })
+}
+async function load () { all = await api('/api/showcases'); filters(); render() }
+load(); setInterval(load, 15000)
+</script>
+</body>
+</html>

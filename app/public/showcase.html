@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Showcase · Blockprint</title>
+<link rel="stylesheet" href="/assets/site.css"><link rel="icon" href="/favicon.png">
+<style>
+  .sc-head { padding: 34px 0 26px; }
+  .sc-head h1 { font-size: 40px; margin: 6px 0 4px; letter-spacing: -.5px; }
+  .sc-head .meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: #c6d6ee; }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 22px; padding: 24px 0 60px; }
+  @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+  .explorer { position: relative; border-radius: 18px; overflow: hidden; background: #0a1a30; height: min(72vh, 720px); min-height: 460px; box-shadow: 0 20px 40px rgba(12,35,64,.25); }
+  .explorer iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .gate { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #eaf2ff; padding: 20px; }
+  .gate img { max-height: min(34vh, 300px); max-width: 90%; filter: drop-shadow(0 20px 30px rgba(0,0,0,.5)); }
+  .gate .form { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .gate input { width: 220px; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 0 10px; flex-wrap: wrap; }
+  .people { list-style: none; padding: 0; margin: 8px 0 0; }
+  .people li { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-weight: 600; }
+  .people li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tabs button { border: 1px solid #e2dccd; background: #fff; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+  .tabs button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .floorview { border-radius: 12px; display: grid; place-items: center; min-height: 220px; padding: 10px; }
+  .rooms { columns: 2; padding-left: 18px; margin: 6px 0 0; font-size: 14px; }
+  .plans { display: flex; gap: 8px; flex-wrap: wrap; }
+  .plans img { width: 140px; border-radius: 8px; border: 1px solid #e2dccd; background: #222; }
+  .side .panel { margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<section class="sc-head blueprint">
+  <div class="wrap">
+    <a href="/showcases" style="color:#cfe0ff;text-decoration:none">← All showcases</a> &nbsp; <a href="/city" style="color:#cfe0ff;text-decoration:none">The city map →</a>
+    <h1 id="title">…</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+</section>
+<div class="wrap layout">
+  <main>
+    <div class="bar">
+      <div class="small muted">Click the view, then <b>W A S D</b> to walk, mouse to look, <b>Space</b> twice to fly, <b>T</b> to chat, <b>Esc</b> to release the mouse.</div>
+      <div style="display:flex;gap:8px"><button class="btn small light" id="leave" hidden>Leave</button><a class="btn small light" id="full" target="_blank" hidden>Full screen ↗</a></div>
+    </div>
+    <div class="explorer blueprint" id="explorer">
+      <div class="gate" id="gate">
+        <div>
+          <img id="gateImg" alt="">
+          <h2 style="margin:10px 0 4px">Visit it in the city</h2>
+          <div style="color:#c6d6ee" id="gateText">This house stands in the shared city with all the others. You land on its sidewalk; everyone visiting the city sees you.</div>
+          <div class="form"><input type="text" id="name" maxlength="16" aria-label="Your explorer name"><button class="btn" id="enter">Enter the house</button></div>
+          <div class="small" style="color:#9fb3d1;margin-top:10px" id="gateNote"></div>
+        </div>
+      </div>
+    </div>
+    <p class="small muted" id="desc" style="margin-top:14px"></p>
+  </main>
+  <aside class="side">
+    <div class="panel"><h3 style="margin-bottom:4px">At this house now</h3><div id="presence" class="small muted">Nobody yet.</div><ul class="people" id="people"></ul></div>
+    <div class="panel"><h3>Floors</h3><div class="tabs" id="tabs"></div><div class="floorview blueprint"><img id="floorImg" alt="Cutaway of the floor"></div></div>
+    <div class="panel"><h3>Take it home</h3>
+      <a class="btn blue" style="width:100%" id="dlWorld">World (.zip)</a>
+      <p class="small muted">Unzip into <code>.minecraft/saves/</code> and open with Minecraft Java 1.21.4 or newer.</p>
+      <a class="btn light small" style="width:100%" id="dlPack">Datapack for 26.3</a>
+      <p class="small muted">Add to a superflat world, then type <code>/function house:setup</code>.</p></div>
+    <div class="panel"><h3>The plan</h3><div class="plans" id="plans"></div><ul class="rooms" id="rooms"></ul><div id="notes" class="small muted"></div>
+      <p class="small"><a id="layers" target="_blank">Block-by-block layers ↗</a></p></div>
+  </aside>
+</div>
+<script src="/assets/site.js"></script>
+<script>
+header('showcases')
+const id = decodeURIComponent(location.pathname.split('/').pop())
+let sc
+const mpUrl = name => `/mc/?ip=city&version=1.21.4&proxy=${encodeURIComponent(location.origin)}&username=${encodeURIComponent(name)}&autoConnect=true&lockConnect=true&setting=renderDistance:6`
+async function load () {
+  try { sc = await api('/api/showcases/' + encodeURIComponent(id)) } catch (e) {
+    document.getElementById('title').textContent = 'Showcase not found'; document.getElementById('gate').innerHTML = '<p>This showcase does not exist or is disabled.</p>'; return }
+  document.title = sc.title + ' · Blockprint'
+  document.getElementById('title').textContent = sc.title
+  document.getElementById('meta').innerHTML = `<span>by ${esc(sc.author)}</span>
+    ${sc.style ? `<span class="chip style-${esc(sc.style)}">${esc(STYLE_LABEL[sc.style] || sc.style)}</span>` : ''}
+    ${sc.stats ? `<span class="chip">${sc.stats.levels} floors</span><span class="chip">${sc.stats.rooms} spaces</span><span class="chip">${sc.stats.furniture} pieces of furniture</span><span class="chip">${esc(sc.stats.scale)}</span>` : ''}
+    ${sc.editable ? '<span class="chip" style="background:#e4f5ec;color:#1d6b43">Building allowed</span>' : '<span class="chip">Look, don\'t touch</span>'}`
+  document.getElementById('desc').textContent = sc.description || ''
+  const f = n => `/api/showcases/${encodeURIComponent(id)}/files/${n}`
+  document.getElementById('gateImg').src = f('iso.png')
+  document.getElementById('dlWorld').href = f('world.zip'); document.getElementById('dlPack').href = f('datapack.zip')
+  document.getElementById('layers').href = f('layers.png')
+  document.getElementById('plans').innerHTML = (sc.inputs || []).filter(n => !/\.pdf$/i.test(n)).map(n => `<a href="${f(encodeURIComponent(n))}" target="_blank"><img src="${f(encodeURIComponent(n))}" alt="${esc(n)}"></a>`).join('')
+    + (sc.inputs || []).filter(n => /\.pdf$/i.test(n)).map(n => `<a class="btn small light" href="${f(encodeURIComponent(n))}" target="_blank">${esc(n)}</a>`).join('')
+  document.getElementById('rooms').innerHTML = (sc.rooms || []).map(r => `<li>${esc(r)}</li>`).join('')
+  document.getElementById('notes').textContent = (sc.notes || []).join(' · ')
+  const views = Array.from({ length: sc.levels }, (_, i) => [i === 0 ? 'Ground floor' : 'Floor ' + i, `iso_level${i}.png`]).concat([['Outside', 'iso.png']])
+  const tabs = document.getElementById('tabs')
+  tabs.innerHTML = views.map(v => `<button type="button">${v[0]}</button>`).join('')
+  tabs.querySelectorAll('button').forEach((b, i) => b.onclick = () => { tabs.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); document.getElementById('floorImg').src = f(views[i][1]) })
+  tabs.querySelector('button').click()
+  presence()
+}
+function presence () {
+  const n = sc.online || 0
+  document.getElementById('presence').innerHTML = (n ? `${n} explorer${n > 1 ? 's' : ''} here` : 'Nobody at this house right now.') + ` · <a href="/city?house=${encodeURIComponent(id)}">see the city map</a>`
+  document.getElementById('people').innerHTML = (sc.explorers || []).map(p => `<li>${esc(p)}</li>`).join('')
+  document.getElementById('gateNote').textContent = n ? `${n} explorer${n > 1 ? 's are' : ' is'} inside right now.` : ''
+}
+setInterval(async () => { try { const s = await api('/api/showcases/' + encodeURIComponent(id)); sc.online = s.online; sc.explorers = s.explorers; presence() } catch {} }, 5000)
+
+const nameInput = document.getElementById('name'); nameInput.value = explorerName()
+document.getElementById('enter').onclick = () => {
+  const n = nameInput.value.trim()
+  if (!/^[A-Za-z0-9_]{3,16}$/.test(n)) { document.getElementById('gateText').textContent = 'Names use 3 to 16 letters, digits or _ (no spaces).'; return }
+  localStorage.setItem('bp_name', n)
+  api('/api/city/visit', { method: 'POST', body: JSON.stringify({ username: n, id }) }).then(() => {
+  const fr = document.createElement('iframe')
+  fr.allow = 'fullscreen; pointer-lock; gamepad'; fr.title = 'Explore ' + sc.title; fr.src = mpUrl(n)
+  const ex = document.getElementById('explorer'); ex.innerHTML = ''; ex.append(fr)
+  const full = document.getElementById('full'); full.href = mpUrl(n); full.hidden = false
+  document.getElementById('leave').hidden = false
+  })
+}
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('enter').click() })
+document.getElementById('leave').onclick = () => location.reload()
+load()
+</script>
+</body>
+</html>

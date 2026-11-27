@@ -1,0 +1,17 @@
+# dependencies and downloads
+node_modules/
+app/vendor/
+# runtime data: uploaded plans, built worlds, the city (may contain other people's plans)
+data/
+build/
+app/.tmp/
+app/test/out/
+# never publish Mojang's server or anything that accepts its EULA
+server/
+run_server.py
+# logs, pids, caches, secrets
+*.log
+app/.server.pid
+__pycache__/
+*.pyc
+.env

@@ -1,0 +1,816 @@
+{
+ "facts": {
+  "lot": {
+   "width": 7,
+   "depth": 13,
+   "source": "plan",
+   "evidence": "Ground floor overall dimensions written on the sides: 7 m wide (top) and 13 m deep (left); right-hand chain 4+4+3+2 = 13 m."
+  },
+  "street_side": {
+   "value": "unknown",
+   "source": "guess",
+   "evidence": "No street, entrance door or north arrow is shown. No exterior door is drawn on any facade."
+  },
+  "levels": [
+   {
+    "index": 0,
+    "name": "Ground floor",
+    "drawing": "ground_floor.png",
+    "outline": [
+     0,
+     0,
+     7,
+     13
+    ],
+    "spaces": [
+     {
+      "id": "g_noncouvert",
+      "label": "Non couvert 7 × 4 m",
+      "rect": [
+       0,
+       0,
+       7,
+       4
+      ],
+      "type": "courtyard",
+      "type_source": "plan",
+      "covered": "open",
+      "covered_source": "plan",
+      "evidence": "Hatched area labelled 'Non couvert 7 × 4 m'; right chain gives 4 m."
+     },
+     {
+      "id": "g_salle",
+      "label": "Salle 4 × 7 m",
+      "rect": [
+       0,
+       4,
+       4,
+       11
+      ],
+      "type": "living",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Salle 4 × 7 m'; spans the chain 4 + 3 m below the open area."
+     },
+     {
+      "id": "g_chambre",
+      "label": "Chambre 3 × 4 m",
+      "rect": [
+       4,
+       4,
+       7,
+       8
+      ],
+      "type": "bedroom",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Chambre 3 × 4 m'; right chain gives 4 m."
+     },
+     {
+      "id": "g_cuisine",
+      "label": "Cuisine 3 × 3 m",
+      "rect": [
+       4,
+       8,
+       7,
+       11
+      ],
+      "type": "kitchen",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Cuisine 3 × 3 m'; right chain gives 3 m."
+     },
+     {
+      "id": "g_couloir",
+      "label": "Couloir 4 × 1 m",
+      "rect": [
+       0,
+       11,
+       4,
+       12
+      ],
+      "type": "hallway",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Couloir 4 × 1 m'."
+     },
+     {
+      "id": "g_esc",
+      "label": "Esc.",
+      "rect": [
+       0,
+       12,
+       2.5,
+       13
+      ],
+      "type": "stairs",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Esc.' with step lines. Its width is measured on the drawing (about 2.5 m)."
+     },
+     {
+      "id": "g_wc",
+      "label": "WC",
+      "rect": [
+       2.5,
+       12,
+       4,
+       13
+      ],
+      "type": "wc",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'WC'. Its width is measured on the drawing (about 1.5 m)."
+     },
+     {
+      "id": "g_courette",
+      "label": "Courette 3 × 2 m",
+      "rect": [
+       4,
+       11,
+       7,
+       13
+      ],
+      "type": "courtyard",
+      "type_source": "plan",
+      "covered": "open",
+      "covered_source": "plan",
+      "evidence": "Hatched area labelled 'Courette 3 × 2 m'; right chain gives 2 m."
+     }
+    ],
+    "walls": [
+     [
+      0,
+      0,
+      7,
+      0
+     ],
+     [
+      0,
+      13,
+      7,
+      13
+     ],
+     [
+      0,
+      0,
+      0,
+      13
+     ],
+     [
+      7,
+      0,
+      7,
+      13
+     ],
+     [
+      0,
+      4,
+      7,
+      4
+     ],
+     [
+      4,
+      4,
+      4,
+      13
+     ],
+     [
+      4,
+      8,
+      7,
+      8
+     ],
+     [
+      0,
+      11,
+      7,
+      11
+     ],
+     [
+      0,
+      12,
+      4,
+      12
+     ],
+     [
+      2.5,
+      12,
+      2.5,
+      13
+     ]
+    ],
+    "openings": [
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 4,
+      "from": 1,
+      "to": 1.75,
+      "between": [
+       "g_salle",
+       "g_noncouvert"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 4,
+      "from": 2.5,
+      "to": 3.75,
+      "between": [
+       "g_salle",
+       "g_noncouvert"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 4,
+      "from": 4.75,
+      "to": 6.5,
+      "between": [
+       "g_chambre",
+       "g_noncouvert"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 4,
+      "from": 4.25,
+      "to": 5.25,
+      "between": [
+       "g_salle",
+       "g_chambre"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 4,
+      "from": 8.25,
+      "to": 9.25,
+      "between": [
+       "g_salle",
+       "g_cuisine"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 11,
+      "from": 5,
+      "to": 6.25,
+      "between": [
+       "g_cuisine",
+       "g_courette"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 11,
+      "from": 1.25,
+      "to": 2,
+      "between": [
+       "g_salle",
+       "g_couloir"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 12,
+      "from": 0.25,
+      "to": 0.75,
+      "between": [
+       "g_couloir",
+       "g_esc"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 12,
+      "from": 3.25,
+      "to": 4,
+      "between": [
+       "g_couloir",
+       "g_wc"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "x",
+      "at": 4,
+      "from": 12.25,
+      "to": 12.75,
+      "between": [
+       "g_wc",
+       "g_courette"
+      ],
+      "source": "plan"
+     }
+    ],
+    "stairs": [
+     {
+      "rect": [
+       0,
+       12,
+       2.5,
+       13
+      ],
+      "up": "east",
+      "to": "next_level",
+      "source": "guess",
+      "evidence": "'Esc.' with vertical step lines, so the flight runs east-west. It is entered from the couloir door at the west end. The upper 'Esc. 4 × 1 m' arrives at the landing at x 3-4, so the climb is taken as eastward."
+     }
+    ]
+   },
+   {
+    "index": 1,
+    "name": "Upper floor",
+    "drawing": "upper_floor.png",
+    "outline": [
+     0,
+     4,
+     7,
+     13
+    ],
+    "spaces": [
+     {
+      "id": "u_esc_haut",
+      "label": "Esc.",
+      "rect": [
+       0,
+       4,
+       1,
+       8
+      ],
+      "type": "stairs",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Esc.' with horizontal step lines. The top chain gives 1 m wide; the depth matches the 4 m chambre beside it."
+     },
+     {
+      "id": "u_ch1",
+      "label": "Chambre 3 × 4 m",
+      "rect": [
+       1,
+       4,
+       4,
+       8
+      ],
+      "type": "bedroom",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Chambre 3 × 4 m'; top chain 1 + 3 m."
+     },
+     {
+      "id": "u_ch2",
+      "label": "Chambre 3 × 5 m",
+      "rect": [
+       4,
+       4,
+       7,
+       9
+      ],
+      "type": "bedroom",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Chambre 3 × 5 m'; right chain gives 5 m."
+     },
+     {
+      "id": "u_d1",
+      "label": "D",
+      "rect": [
+       3,
+       8,
+       3.5,
+       9
+      ],
+      "type": "closet",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Small cupboard marked 'D'."
+     },
+     {
+      "id": "u_d2",
+      "label": "D",
+      "rect": [
+       3.5,
+       8,
+       4,
+       9
+      ],
+      "type": "closet",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Small cupboard marked 'D'."
+     },
+     {
+      "id": "u_ch3",
+      "label": "Chambre 3 × 4 m",
+      "rect": [
+       0,
+       8,
+       3,
+       12
+      ],
+      "type": "bedroom",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Chambre 3 × 4 m'."
+     },
+     {
+      "id": "u_palier",
+      "label": "Palier",
+      "rect": [
+       3,
+       9,
+       5,
+       11
+      ],
+      "type": "landing",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Palier', placed between the closets, the WC and the courette."
+     },
+     {
+      "id": "u_palier2",
+      "label": "",
+      "rect": [
+       3,
+       11,
+       4,
+       12
+      ],
+      "type": "landing",
+      "type_source": "guess",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Southern part of the L-shaped landing, between chambre and courette. It leads down to the stair."
+     },
+     {
+      "id": "u_wc",
+      "label": "WC 2 × 2 m",
+      "rect": [
+       5,
+       9,
+       7,
+       11
+      ],
+      "type": "wc",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'WC 2 × 2 m'; right chain gives 2 m."
+     },
+     {
+      "id": "u_courette",
+      "label": "Courette 3 × 2 m",
+      "rect": [
+       4,
+       11,
+       7,
+       13
+      ],
+      "type": "light_shaft",
+      "type_source": "plan",
+      "covered": "open",
+      "covered_source": "plan",
+      "evidence": "Hatched area labelled 'Courette 3 × 2 m'. It lines up with the ground floor courette; right chain gives 1 + 1 m."
+     },
+     {
+      "id": "u_esc_bas",
+      "label": "Esc. 4 × 1 m",
+      "rect": [
+       0,
+       12,
+       4,
+       13
+      ],
+      "type": "stairs",
+      "type_source": "plan",
+      "covered": "covered",
+      "covered_source": "guess",
+      "evidence": "Label 'Esc. 4 × 1 m' with step lines. This is the stairwell of the ground floor flight."
+     }
+    ],
+    "walls": [
+     [
+      0,
+      4,
+      7,
+      4
+     ],
+     [
+      0,
+      13,
+      7,
+      13
+     ],
+     [
+      0,
+      4,
+      0,
+      13
+     ],
+     [
+      7,
+      4,
+      7,
+      13
+     ],
+     [
+      1,
+      4,
+      1,
+      8
+     ],
+     [
+      4,
+      4,
+      4,
+      9
+     ],
+     [
+      0,
+      8,
+      4,
+      8
+     ],
+     [
+      3,
+      8,
+      3,
+      12
+     ],
+     [
+      3.5,
+      8,
+      3.5,
+      9
+     ],
+     [
+      3,
+      9,
+      7,
+      9
+     ],
+     [
+      5,
+      9,
+      5,
+      11
+     ],
+     [
+      4,
+      11,
+      7,
+      11
+     ],
+     [
+      4,
+      11,
+      4,
+      13
+     ],
+     [
+      0,
+      12,
+      3,
+      12
+     ]
+    ],
+    "openings": [
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 4,
+      "from": 1.75,
+      "to": 3.25,
+      "between": [
+       "u_ch1",
+       "outside"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 4,
+      "from": 4.75,
+      "to": 6.5,
+      "between": [
+       "u_ch2",
+       "outside"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 1,
+      "from": 4.75,
+      "to": 5.25,
+      "between": [
+       "u_esc_haut",
+       "u_ch1"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 8,
+      "from": 1.25,
+      "to": 2,
+      "between": [
+       "u_ch1",
+       "u_ch3"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 3,
+      "from": 8.25,
+      "to": 9,
+      "between": [
+       "u_d1",
+       "u_ch3"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 4,
+      "from": 8.25,
+      "to": 9,
+      "between": [
+       "u_d2",
+       "u_ch2"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 3,
+      "from": 11,
+      "to": 11.75,
+      "between": [
+       "u_ch3",
+       "u_palier2"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "door",
+      "axis": "x",
+      "at": 5,
+      "from": 10,
+      "to": 10.75,
+      "between": [
+       "u_palier",
+       "u_wc"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "z",
+      "at": 11,
+      "from": 5.5,
+      "to": 6.5,
+      "between": [
+       "u_wc",
+       "u_courette"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "window",
+      "axis": "x",
+      "at": 4,
+      "from": 11.25,
+      "to": 12.75,
+      "between": [
+       "u_palier2",
+       "u_courette"
+      ],
+      "source": "plan"
+     },
+     {
+      "type": "opening",
+      "axis": "z",
+      "at": 12,
+      "from": 3,
+      "to": 4,
+      "between": [
+       "u_esc_bas",
+       "u_palier2"
+      ],
+      "source": "guess"
+     },
+     {
+      "type": "door",
+      "axis": "z",
+      "at": 9,
+      "from": 4.25,
+      "to": 5,
+      "between": [
+       "u_ch2",
+       "u_palier"
+      ],
+      "source": "guess"
+     }
+    ],
+    "stairs": [
+     {
+      "rect": [
+       0,
+       4,
+       1,
+       8
+      ],
+      "up": "north",
+      "to": "roof",
+      "source": "guess",
+      "evidence": "'Esc.' with horizontal step lines. There is no matching stair on the ground floor (the salle is below), so it is taken as going to the roof. It is reached at its south part, so the climb is taken as northward."
+     }
+    ]
+   }
+  ],
+  "assumptions": [
+   "Upper floor is aligned with its top wall at z=4 and its bottom at z=13. It is 9 m deep against 13 m on the ground floor, and both courettes then coincide (x 4-7, z 11-13).",
+   "Interior walls are taken as having no thickness. The ground floor stair/WC split at x=2.5 is measured on the drawing, not written.",
+   "The ground floor stair climbs eastward and arrives at the upper landing at x 3-4; the upper 'Esc. 4 × 1 m' is the same stairwell.",
+   "The small arc on the salle/couloir wall at x≈1.6 is interpreted as a door.",
+   "The top-left upper 'Esc.' (1 × 4 m) is assumed to lead to the roof and to climb north.",
+   "Chambre 3 × 5 m has no door on the drawing (only its cupboard door); a door from the palier was added at z=9.",
+   "The connection from the upper stairwell to the landing at x 3-4 is assumed to be an open passage.",
+   "The upper chambre 3 × 4 m (north) is reached through the door from the stair column and the door from the southern chambre, as drawn; no direct door from the palier is shown.",
+   "Rooms that are not hatched are assumed covered.",
+   "Street side is unknown: there is no entrance door or street marking."
+  ],
+  "notes": "Scale: about 54 px/m on the ground floor and about 62 px/m on the upper floor. All positions come from the written dimension chains, snapped to 0.25 m. Door and window extents are measured from the drawing. Hatched 'Non couvert' and 'Courette' areas are open to the sky. The upper landing is L-shaped and is split into two rectangles (u_palier and u_palier2)."
+ },
+ "usage": {
+  "input_tokens": 4363,
+  "cache_creation_input_tokens": 0,
+  "cache_read_input_tokens": 0,
+  "cache_creation": {
+   "ephemeral_5m_input_tokens": 0,
+   "ephemeral_1h_input_tokens": 0
+  },
+  "output_tokens": 10071,
+  "service_tier": "standard",
+  "inference_geo": "global",
+  "speed": "standard",
+  "iterations": [
+   {
+    "input_tokens": 4363,
+    "output_tokens": 10071,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 0,
+    "cache_creation": {
+     "ephemeral_5m_input_tokens": 0,
+     "ephemeral_1h_input_tokens": 0
+    },
+    "type": "message",
+    "model": null
+   }
+  ],
+  "output_tokens_details": {
+   "thinking_tokens": 5614
+  }
+ },
+ "model": "claude-opus-5-5"
+}

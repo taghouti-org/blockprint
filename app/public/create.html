@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build yours · Blockprint</title>
+<link rel="stylesheet" href="/assets/site.css"><link rel="icon" href="/favicon.png">
+<style>
+  .wizard { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+  .wizard span { font-family: var(--mono); font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px dashed rgba(232,213,163,.5); color: #9fb3d1; }
+  .wizard span.on { background: var(--sand); color: var(--navy); border-style: solid; font-weight: 700; }
+  .wizard span.done { color: var(--sand); }
+  .drop { border: 2px dashed #c9bfa8; border-radius: 16px; padding: 34px; text-align: center; background: #fff; cursor: pointer; transition: .15s; }
+  .drop.over { border-color: var(--blue); background: #eef5ff; }
+  .thumbs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .thumbs figure { margin: 0; width: 130px; font-size: 12px; text-align: center; color: var(--muted); }
+  .thumbs img { width: 130px; height: 100px; object-fit: contain; background: #1b2430; border-radius: 8px; }
+  .scan { position: relative; display: inline-block; border-radius: 14px; overflow: hidden; max-width: 100%; }
+  .scan img { display: block; max-height: 420px; }
+  .scan::after { content: ""; position: absolute; left: 0; right: 0; height: 70px; top: -70px;
+    background: linear-gradient(180deg, transparent, rgba(232,213,163,.55), transparent); animation: scan 2.4s linear infinite; }
+  @keyframes scan { to { top: 100% } }
+  .qsec { margin: 26px 0 10px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .qsec { grid-template-columns: 1fr; } .mini { display: none; } }
+  .mini { position: sticky; top: 80px; border-radius: 14px; padding: 12px; }
+  .mini svg { width: 100%; height: auto; }
+  .mini rect.sp { fill: rgba(232,213,163,.08); stroke: #9fb3d1; stroke-width: .04; }
+  .mini rect.sp.hl { fill: rgba(226,115,74,.55); stroke: #e2734a; }
+  .mini rect.sp.open { fill: url(#hatch); }
+  .mini text { font-size: .32px; fill: #eaf2ff; font-family: system-ui; }
+  details.q { background: var(--card); border: 1px solid #e7e0cf; border-radius: 14px; margin-bottom: 10px; }
+  details.q > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  details.q > summary::-webkit-details-marker { display: none; }
+  details.q > summary b { font-size: 17px; }
+  details.q .inner { padding: 0 16px 14px; }
+  details.q.attn { border-color: #f0c46a; box-shadow: 0 0 0 3px rgba(240,196,106,.18); }
+  details.q.need { border-color: var(--bad); }
+  .field { padding: 10px 0; border-top: 1px dashed #e7e0cf; }
+  .field:first-child { border-top: 0; }
+  .field .lab { display: flex; gap: 8px; align-items: center; font-weight: 700; margin-bottom: 6px; flex-wrap: wrap; }
+  .src { font-size: 11.5px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .src.plan { background: #e1f3e9; color: #1d6b43; } .src.guess { background: #fff1d2; color: #8a5a00; }
+  .src.default { background: #eceff3; color: #4b5663; } .src.unknown { background: #fde2e6; color: #a32035; } .src.you { background: #dfeaff; color: #1b4f9c; }
+  .ev { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; }
+  .opts label { border: 1.5px solid #ddd5c3; border-radius: 10px; padding: 7px 11px; cursor: pointer; background: #fff; font-size: 14.5px; }
+  .opts input { position: absolute; opacity: 0; pointer-events: none; }
+  .opts label:has(input:checked) { border-color: var(--blue); background: #eaf2ff; color: #123f80; font-weight: 700; }
+  .opts label:has(input:focus-visible) { outline: 3px solid rgba(31,111,214,.3); }
+  .sumval { color: var(--muted); font-size: 14px; }
+  .assume li { margin: 4px 0; }
+  .sticky-go { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(246,241,230,0), var(--paper) 30%); padding: 22px 0 18px; display: flex; gap: 12px; align-items: center; justify-content: flex-end; }
+</style>
+</head>
+<body>
+<section class="blueprint" style="padding:40px 0 30px">
+  <div class="wrap">
+    <div class="kicker">Build yours</div>
+    <h1 style="font-size:42px;margin:8px 0 4px" id="h1">Turn your plan into a house you can visit</h1>
+    <div class="wizard" id="wizard"><span>1 · Upload</span><span>2 · Claude reads</span><span>3 · Your answers</span><span>4 · Building</span><span>5 · Explore</span></div>
+  </div>
+</section>
+<section class="band" style="padding-top:30px"><div class="wrap" id="main"></div></section>
+<script src="/assets/site.js"></script>
+<script>
+header('create')
+const main = document.getElementById('main')
+const id = location.pathname.split('/')[2] || null
+function stage (n) { document.querySelectorAll('#wizard span').forEach((s, i) => { s.className = i < n ? 'done' : i === n ? 'on' : '' }) }
+
+// ---------------------------------------------------------------- 1. upload
+function uploadForm () {
+  stage(0)
+  main.innerHTML = `<div class="panel" style="max-width:820px">
+    <h2>Your floor plan</h2>
+    <p class="muted">A photo, scan or PDF. One image per floor works best; write the room names and sizes on it if you can.</p>
+    <div class="drop" id="drop"><b>Drop your plan here</b><br><span class="muted">or click to choose (PNG, JPG, WEBP or PDF, up to 20 MB each, max 6 files)</span>
+      <input type="file" id="files" accept=".png,.jpg,.jpeg,.webp,.pdf" multiple hidden></div>
+    <div class="thumbs" id="thumbs"></div>
+    <label class="f" for="title">Name of the house</label><input type="text" id="title" maxlength="80" placeholder="e.g. Dar Yasmine">
+    <label class="f" for="author">Your name</label><input type="text" id="author" maxlength="40" placeholder="Shown on the showcase">
+    <label class="f" for="desc">A few words (optional)</label><textarea id="desc" rows="2" maxlength="400"></textarea>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:18px"><button class="btn" id="go" disabled>Read my plan</button><span id="msg" class="small"></span></div>
+    <p class="small muted" style="margin-top:14px">Claude reads the plan in about one to two minutes. Nothing is built before you confirm the answers.</p></div>`
+  const input = document.getElementById('files'), drop = document.getElementById('drop'); let files = []
+  const refresh = () => {
+    document.getElementById('thumbs').innerHTML = files.map(f => `<figure>${/pdf$/i.test(f.name) ? '<div style="height:100px;display:grid;place-items:center;background:#1b2430;color:#fff;border-radius:8px">PDF</div>' : `<img src="${URL.createObjectURL(f)}">`}<figcaption>${esc(f.name)}</figcaption></figure>`).join('')
+    document.getElementById('go').disabled = !files.length
+  }
+  drop.onclick = () => input.click()
+  input.onchange = () => { files = [...files, ...input.files].slice(0, 6); refresh() }
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add('over') }
+  drop.ondragleave = () => drop.classList.remove('over')
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); files = [...files, ...e.dataTransfer.files].filter(f => /\.(png|jpe?g|webp|pdf)$/i.test(f.name)).slice(0, 6); refresh() }
+  document.getElementById('go').onclick = async () => {
+    const fd = new FormData(); files.forEach(f => fd.append('plans', f))
+    for (const k of ['title', 'author', 'desc']) fd.append(k === 'desc' ? 'description' : k, document.getElementById(k).value)
+    const b = document.getElementById('go'); b.disabled = true; b.textContent = 'Uploading…'
+    try { const r = await api('/api/showcases', { method: 'POST', body: fd }); location.href = '/create/' + r.id }
+    catch (e) { document.getElementById('msg').innerHTML = `<span class="notice bad">${esc(e.message)}</span>`; b.disabled = false; b.textContent = 'Read my plan' }
+  }
+}
+
+// ---------------------------------------------------------------- 2-5. follow one plan
+let sc, answers = {}, touched = new Set(), pollTimer
+async function follow () {
+  try { sc = await api(`/api/showcases/${encodeURIComponent(id)}?questions=1`) } catch (e) { main.innerHTML = `<p class="notice bad">${esc(e.message)}</p>`; return }
+  document.getElementById('h1').textContent = sc.title
+  clearTimeout(pollTimer)
+  if (sc.status === 'reading' || sc.status === 'new') { reading(); pollTimer = setTimeout(follow, 4000) }
+  else if (sc.status === 'questions') questionnaire()
+  else if (sc.status === 'building') { building(); pollTimer = setTimeout(follow, 2500) }
+  else if (sc.status === 'ready' && new URLSearchParams(location.search).has('edit') && sc.questions) questionnaire()
+  else if (sc.status === 'ready') ready()
+  else failed()
+}
+function reading () {
+  stage(1)
+  const img = (sc.inputs || []).find(n => !/\.pdf$/i.test(n))
+  if (document.getElementById('reading')) return
+  const t0 = Date.now()
+  main.innerHTML = `<div id="reading" style="display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:center">
+    ${img ? `<div class="scan"><img src="/api/showcases/${encodeURIComponent(id)}/files/${encodeURIComponent(img)}" alt="Your plan"></div>` : ''}
+    <div><h2>Claude is reading your plan</h2>
+      <p class="muted">Finding the rooms and their labels, the walls, the doors and windows, the stairs and the spaces open to the sky.
+        Everything it finds on the plan will be filled in for you; anything it has to guess will be highlighted.</p>
+      <p style="font-family:var(--mono)" id="clock">0:00</p><p class="small muted">Usually one to two minutes.</p></div></div>`
+  const c = setInterval(() => { const el = document.getElementById('clock'); if (!el) return clearInterval(c); const s = Math.floor((Date.now() - t0) / 1000); el.textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` }, 1000)
+}
+function building () { stage(3); main.innerHTML = `<div class="panel" style="text-align:center;padding:50px"><img src="/favicon.png" style="width:48px;animation:float 1.5s infinite"><h2>Building your house block by block…</h2><p class="muted">Placing walls, doors, furniture and the street. A few seconds.</p></div>` }
+function ready () {
+  stage(4)
+  main.innerHTML = `<div class="panel" style="display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center">
+    <div class="blueprint" style="border-radius:14px;display:grid;place-items:center;padding:20px"><img src="/api/showcases/${encodeURIComponent(id)}/files/iso.png?t=${Date.now()}" style="max-height:340px;filter:drop-shadow(0 20px 26px rgba(0,0,0,.5))"></div>
+    <div><div class="kicker" style="color:var(--terra)">Ready</div><h2 style="font-size:32px;margin:6px 0">${esc(sc.title)} is built</h2>
+      <p class="muted">${sc.stats ? `${sc.stats.blocks.toLocaleString()} blocks · ${sc.stats.rooms} spaces · ${sc.stats.furniture} pieces of furniture` : ''}</p>
+      ${(sc.notes || []).length ? `<p class="notice">${sc.notes.map(esc).join('<br>')}</p>` : ''}
+      <a class="btn" href="/s/${encodeURIComponent(id)}">Walk inside</a></div></div>`
+}
+function failed () {
+  stage(1)
+  main.innerHTML = `<div class="panel"><h2>Something went wrong</h2><p class="notice bad">${esc(sc.error || 'Unknown error')}</p><button class="btn" id="retry">Try again</button></div>`
+  document.getElementById('retry').onclick = async () => { await api(`/api/showcases/${encodeURIComponent(id)}/retry`, { method: 'POST' }); follow() }
+}
+
+// ---------------------------------------------------------------- questionnaire
+const SRC = { plan: 'From the plan', guess: "Claude's guess", default: 'Default', unknown: 'Needs your answer', you: 'Your answer' }
+function fieldsOf (item) { return item.fields || [item] }
+function visible (f) { return Object.entries(f.show_if || {}).every(([k, v]) => Array.isArray(v) ? v.includes(answers[k]) : answers[k] === v) }
+function valueText (f) { const v = answers[f.key]; const o = f.options || []; return Array.isArray(v) ? v.map(x => (o.find(p => p.value === x) || {}).label || x).join(', ') : ((o.find(p => p.value === v) || {}).label || v || '—') }
+
+function questionnaire () {
+  stage(2)
+  const Q = sc.questions
+  for (const s of Q.sections) for (const it of s.items) for (const f of fieldsOf(it)) if (!(f.key in answers)) answers[f.key] = sc.answers?.[f.key] ?? f.value
+  main.innerHTML = `<p class="muted" style="max-width:760px">Everything Claude found on your plan is already filled in and folded away.
+    Highlighted cards are guesses: please check them. Open any card to change an answer.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px">${Object.entries(SRC).slice(0, 4).map(([k, v]) => `<span class="src ${k}">${v}</span>`).join('')}</div>
+    <div id="qs"></div>
+    ${Q.assumptions?.length ? `<div class="panel" style="margin-top:20px"><h3>What Claude assumed</h3><ul class="assume">${Q.assumptions.map(a => `<li>${esc(a)}</li>`).join('')}</ul><p class="small muted">These are built as described. Change the related answers above if one is wrong.</p></div>` : ''}
+    <div class="sticky-go"><span id="need" class="small"></span><button class="btn" id="build">Build my house</button></div>`
+  const qs = document.getElementById('qs')
+  Q.sections.forEach((sec, si) => {
+    const spaces = sec.items.filter(it => it.rect)
+    const div = document.createElement('div'); div.className = 'qsec'
+    div.innerHTML = `<div><h2 style="margin:0 0 12px">${esc(sec.title)}</h2><div class="cards"></div></div>${spaces.length ? `<div class="mini blueprint">${miniPlan(spaces)}</div>` : '<div></div>'}`
+    const cards = div.querySelector('.cards')
+    sec.items.forEach(it => cards.append(card(it, si)))
+    qs.append(div)
+  })
+  document.getElementById('build').onclick = submit
+  checkNeeded()
+}
+function miniPlan (items) {
+  const rs = items.map(i => i.rect); const x0 = Math.min(...rs.map(r => r[0])), z0 = Math.min(...rs.map(r => r[1])), x1 = Math.max(...rs.map(r => r[2])), z1 = Math.max(...rs.map(r => r[3]))
+  const pad = .3
+  return `<svg viewBox="${x0 - pad} ${z0 - pad} ${x1 - x0 + 2 * pad} ${z1 - z0 + 2 * pad}" role="img" aria-label="Plan of this floor">
+    <defs><pattern id="hatch" width=".3" height=".3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width=".3" height=".3" fill="rgba(232,213,163,.06)"/><line x1="0" y1="0" x2="0" y2=".3" stroke="rgba(232,213,163,.5)" stroke-width=".05"/></pattern></defs>
+    ${items.map(it => { const r = it.rect; const open = fieldsOf(it).some(f => f.key.endsWith('.covered') && f.value === 'open')
+      return `<rect class="sp ${open ? 'open' : ''}" data-k="${esc(it.space || it.stair)}" x="${r[0]}" y="${r[1]}" width="${r[2] - r[0]}" height="${r[3] - r[1]}"/>
+      ${(r[2] - r[0]) > 1.2 ? `<text x="${(r[0] + r[2]) / 2}" y="${(r[1] + r[3]) / 2}" text-anchor="middle" dominant-baseline="middle">${esc((it.title || '').split(' ')[0].slice(0, 10))}</text>` : ''}` }).join('')}
+    <g fill="#e8d5a3" font-family="monospace"><text x="${x0}" y="${z0 - .08}" style="font-size:.26px;fill:#e8d5a3">${(x1 - x0).toFixed(1)} m</text></g></svg>`
+}
+function card (it, si) {
+  const fs = fieldsOf(it)
+  const d = document.createElement('details'); d.className = 'q'
+  const key = it.space || it.stair || it.key
+  const worst = () => { const v = fs.filter(visible).map(f => touched.has(f.key) ? 'you' : f.source); return v.includes('unknown') ? 'unknown' : v.includes('guess') ? 'guess' : v.includes('default') ? 'default' : v.includes('you') ? 'you' : 'plan' }
+  const paint = () => {
+    const w = worst()
+    d.classList.toggle('attn', w === 'guess'); d.classList.toggle('need', w === 'unknown')
+    d.querySelector('summary').innerHTML = `<b>${esc(it.title || it.label)}</b><span class="src ${w}">${SRC[w]}</span><span class="sumval">${fs.filter(visible).map(valueText).map(esc).join(' · ')}</span>`
+    fs.forEach(f => { const el = d.querySelector(`[data-field="${CSS.escape(f.key)}"]`); if (el) el.hidden = !visible(f) })
+  }
+  d.innerHTML = '<summary></summary><div class="inner"></div>'
+  const inner = d.querySelector('.inner')
+  fs.forEach(f => {
+    const el = document.createElement('div'); el.className = 'field'; el.dataset.field = f.key
+    const name = 'f_' + f.key.replace(/\W/g, '_')
+    el.innerHTML = `${fs.length > 1 ? `<div class="lab">${esc(f.label)} <span class="src ${f.source}">${SRC[f.source] || f.source}</span></div>` : ''}
+      <div class="opts">${(f.options || []).map(o => `<label><input type="${f.kind === 'multi' ? 'checkbox' : 'radio'}" name="${name}" value="${esc(o.value)}" ${(Array.isArray(answers[f.key]) ? answers[f.key].includes(o.value) : answers[f.key] === o.value) ? 'checked' : ''}>${esc(o.label)}</label>`).join('')}</div>
+      ${f.evidence ? `<div class="ev">${esc(f.evidence)}</div>` : ''}${f.help ? `<div class="ev">${esc(f.help)}</div>` : ''}`
+    el.addEventListener('change', () => {
+      const vals = [...el.querySelectorAll('input:checked')].map(i => i.value)
+      answers[f.key] = f.kind === 'multi' ? vals : vals[0]
+      touched.add(f.key); document.querySelectorAll('details.q').forEach(x => x.dispatchEvent(new Event('repaint'))); checkNeeded()
+    })
+    inner.append(el)
+  })
+  d.addEventListener('repaint', paint)
+  const w0 = worst(); d.open = w0 === 'guess' || w0 === 'unknown'
+  d.addEventListener('mouseenter', () => document.querySelectorAll(`rect.sp[data-k="${CSS.escape(key)}"]`).forEach(r => r.classList.add('hl')))
+  d.addEventListener('mouseleave', () => document.querySelectorAll('rect.sp.hl').forEach(r => r.classList.remove('hl')))
+  paint()
+  return d
+}
+function checkNeeded () {
+  let n = 0
+  for (const s of sc.questions.sections) for (const it of s.items) for (const f of fieldsOf(it)) if (visible(f) && (answers[f.key] == null || answers[f.key] === '')) n++
+  document.getElementById('need').textContent = n ? `${n} answer${n > 1 ? 's' : ''} missing` : ''
+  document.getElementById('build').disabled = n > 0
+}
+async function submit () {
+  const b = document.getElementById('build'); b.disabled = true; b.textContent = 'Starting…'
+  try { await api(`/api/showcases/${encodeURIComponent(id)}/answers`, { method: 'POST', body: JSON.stringify({ answers }) }); follow() }
+  catch (e) { b.disabled = false; b.textContent = 'Build my house'; alert(e.message) }
+}
+
+if (id) follow(); else uploadForm()
+</script>
+</body>
+</html>

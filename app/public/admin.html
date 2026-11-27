@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Blockprint</title>
+<link rel="stylesheet" href="/assets/site.css"><link rel="icon" href="/favicon.png">
+<style>
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; border: 1px solid #e7e0cf; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #efe8d8; vertical-align: middle; }
+  th { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); background: #faf6ec; }
+  td img { width: 90px; border-radius: 8px; background: var(--navy); }
+  .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle span { position: absolute; inset: 0; background: #cfd5dd; border-radius: 999px; cursor: pointer; transition: .15s; }
+  .toggle span::before { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .15s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+  .toggle input:checked + span { background: var(--ok); }
+  .toggle input:checked + span::before { transform: translateX(20px); }
+  .toggle input:focus-visible + span { outline: 3px solid rgba(31,111,214,.35); }
+  .st { font-weight: 700; font-size: 13px; } .st.ready { color: var(--ok); } .st.failed { color: var(--bad); } .st.reading, .st.building, .st.questions { color: var(--warn); }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<section class="blueprint" style="padding:36px 0 28px"><div class="wrap"><div class="kicker">Admin</div><h1 style="font-size:38px;margin:6px 0 0">Showcases</h1></div></section>
+<section class="band" style="padding-top:26px"><div class="wrap" id="main"></div></section>
+<script src="/assets/site.js"></script>
+<script>
+header('admin')
+const main = document.getElementById('main')
+async function start () {
+  const me = await api('/api/admin/me')
+  if (!me.admin) return login()
+  list()
+}
+function login () {
+  main.innerHTML = `<div class="panel" style="max-width:420px"><h2>Admin login</h2>
+    <label class="f" for="pw">Password</label><input type="password" id="pw" autocomplete="current-password">
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center"><button class="btn" id="go">Log in</button><span id="msg" class="small"></span></div></div>`
+  const go = async () => {
+    try { await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: document.getElementById('pw').value }) }); list() }
+    catch (e) { document.getElementById('msg').innerHTML = `<span style="color:var(--bad)">${esc(e.message)}</span>` }
+  }
+  document.getElementById('go').onclick = go
+  document.getElementById('pw').addEventListener('keydown', e => e.key === 'Enter' && go())
+}
+const tog = (id, k, v, label) => `<label class="toggle" title="${label}"><input type="checkbox" data-id="${esc(id)}" data-k="${k}" ${v ? 'checked' : ''} aria-label="${label}"><span></span></label>`
+async function list () {
+  const rows = await api('/api/showcases?all=1')
+  main.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div class="muted">${rows.length} houses · <span id="cityOnline"></span></div>
+      <div style="display:flex;gap:8px"><a class="btn small blue" href="/create">New showcase</a><button class="btn small light" id="restartCity" title="Rebuild the city from every published house; everyone is disconnected for a few seconds">Restart the city</button><button class="btn small light" id="logout">Log out</button></div></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th></th><th>Showcase</th><th>Status</th><th>Enabled</th><th>Visitors can build on its plot</th><th>Featured</th><th>Inside now</th><th>Actions</th></tr></thead>
+      <tbody>${rows.map(r => `<tr>
+        <td>${r.status === 'ready' ? `<img src="/api/showcases/${esc(r.id)}/files/iso.png" alt="">` : ''}</td>
+        <td><a href="/s/${esc(r.id)}"><b>${esc(r.title)}</b></a><br><span class="small muted">by ${esc(r.author)} · ${new Date(r.createdAt).toLocaleDateString()}${r.readUsage ? ` · read: ${r.readUsage.input + r.readUsage.output} tokens` : ''}</span></td>
+        <td><span class="st ${esc(r.status)}">${esc(r.status)}</span>${r.error ? `<br><span class="small" style="color:var(--bad)">${esc(r.error).slice(0, 120)}</span>` : ''}</td>
+        <td>${tog(r.id, 'enabled', r.enabled, 'Enabled: visible in the gallery and open to explorers')}</td>
+        <td>${tog(r.id, 'editable', r.editable, 'Visitors can place and break blocks')}</td>
+        <td>${tog(r.id, 'featured', r.featured, 'Featured on the home page')}</td>
+        <td>${r.online || 0}${r.running ? ' <span class="small muted">(world running)</span>' : ''}</td>
+        <td><div class="acts">
+          <button class="btn small light" data-act="reset" data-id="${esc(r.id)}" title="Put the original house back on its plot: removes every change made by visitors">Reset house</button>
+          ${r.status === 'ready' || r.status === 'failed' ? `<a class="btn small light" href="/create/${esc(r.id)}?edit=1" data-act="answers" data-id="${esc(r.id)}">Answers</a>` : ''}
+          <button class="btn small light" data-act="rebuild" data-id="${esc(r.id)}">Rebuild</button>
+          <button class="btn small light" style="color:var(--bad)" data-act="delete" data-id="${esc(r.id)}">Delete</button></div></td>
+      </tr>`).join('')}</tbody></table></div>
+    <p class="small muted" style="margin-top:12px">All houses share one city. Enabled puts a house on its plot or removes it, live. "Visitors can build" lets visitors place and break blocks on that plot only, immediately. Reset house puts the original back. Restart the city rebuilds everything from scratch (visitors' changes are never saved).</p>`
+  api('/api/city').then(c => { document.getElementById('cityOnline').textContent = `${c.online} explorer${c.online === 1 ? '' : 's'} in the city` + (c.running ? '' : ' (city server stopped)') })
+  document.getElementById('restartCity').onclick = async e => {
+    if (!confirm('Restart the city? Everyone is disconnected for a few seconds and all visitor changes are removed.')) return
+    e.target.disabled = true; e.target.textContent = 'Restarting…'
+    try { await api('/api/admin/city/restart', { method: 'POST' }); e.target.textContent = 'Restarted ✓' } catch (err) { alert(err.message) }
+    setTimeout(list, 1000)
+  }
+  document.getElementById('logout').onclick = async () => { await api('/api/admin/logout', { method: 'POST' }); login() }
+  main.querySelectorAll('input[data-k]').forEach(i => i.onchange = async () => {
+    try { await api('/api/admin/showcases/' + encodeURIComponent(i.dataset.id), { method: 'POST', body: JSON.stringify({ [i.dataset.k]: i.checked }) }) }
+    catch (e) { alert(e.message); i.checked = !i.checked }
+  })
+  main.querySelectorAll('button[data-act]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.id, act = b.dataset.act
+    if (act === 'delete' && !confirm('Delete this showcase and its world for good?')) return
+    if (act === 'reset' && !confirm('Put the original house back? Changes made by visitors on this plot are removed.')) return
+    b.disabled = true
+    try {
+      if (act === 'delete') await api('/api/admin/showcases/' + encodeURIComponent(id), { method: 'DELETE' })
+      else await api(`/api/admin/showcases/${encodeURIComponent(id)}/${act}`, { method: 'POST' })
+      b.textContent = act === 'reset' ? 'Reset ✓' : 'Done ✓'
+      setTimeout(list, 800)
+    } catch (e) { alert(e.message); b.disabled = false }
+  })
+}
+start(); setInterval(() => { if (document.querySelector('table') && !document.querySelector('button:disabled')) list() }, 10000)
+</script>
+</body>
+</html>

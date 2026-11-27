@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blockprint · walk inside your floor plan</title>
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="icon" href="/favicon.png">
+</head>
+<body>
+<section class="hero blueprint">
+  <svg class="dims" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true">
+    <g stroke="#e8d5a3" stroke-width="1" fill="none" stroke-dasharray="6 6"><path d="M640 70 H1150"/><path d="M640 62 v16 M1150 62 v16"/><path d="M1170 110 V540"/><path d="M1162 110 h16 M1162 540 h16"/></g>
+    <g fill="#e8d5a3" font-family="monospace" font-size="13"><text x="880" y="58">7.00 m</text><text x="1178" y="330" transform="rotate(90 1178 330)">13.00 m</text></g>
+  </svg>
+  <div class="wrap">
+    <div>
+      <div class="kicker">Floor plan → walkable world</div>
+      <h1>Draw it.<br>Upload it.<br><em>Walk inside it.</em></h1>
+      <p class="lead">Send a photo or PDF of a floor plan. Claude reads every room, door and window, asks you a few questions,
+        and builds the house block by block, furnished, in a world you can explore with friends right in the browser.</p>
+      <div class="cta">
+        <a class="btn" href="/create">Upload a plan</a>
+        <a class="btn ghost" href="/city">Walk around the city</a>
+      </div>
+    </div>
+    <div class="stage">
+      <span class="tag" style="top:8%;left:2%">ISO · NE</span>
+      <img class="iso" id="heroImg" alt="A built house seen in 3D">
+      <div class="switch" id="heroSwitch"></div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="section-title"><div><div class="kicker" style="color:var(--terra)">How it works</div><h2>From paper to blocks in four steps</h2></div></div>
+    <div class="steps4">
+      <div class="step"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="8" y="6" width="32" height="36" rx="3"/><path d="M14 14h20M14 20h20M14 26h12"/><path d="M30 34l4 4 8-10" stroke="#e2734a"/></svg>
+        <div class="n">01</div><h3>Upload your plan</h3><p>A photo, a scan or a PDF. One page per floor is perfect.</p></div>
+      <div class="step"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="20" cy="20" r="12"/><path d="M29 29l11 11"/><path d="M14 20h12M20 14v12" stroke="#e2734a"/></svg>
+        <div class="n">02</div><h3>Claude reads it</h3><p>Rooms, labels, dimensions, doors, windows, stairs and open courtyards, each marked "from the plan" or "guessed".</p></div>
+      <div class="step"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="8" width="36" height="10" rx="3"/><rect x="6" y="22" width="36" height="10" rx="3"/><path d="M11 13h4M11 27h4" stroke="#e2734a"/><path d="M10 40h28"/></svg>
+        <div class="n">03</div><h3>Answer a few questions</h3><p>Everything found on the plan is already filled in. You confirm the style, who sleeps where, what is open to the sky.</p></div>
+      <div class="step"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M24 5l17 9.5v19L24 43 7 33.5v-19z"/><path d="M24 24l17-9.5M24 24L7 14.5M24 24v19"/><circle cx="35" cy="37" r="5" fill="#e2734a" stroke="none"/></svg>
+        <div class="n">04</div><h3>Move into the city</h3><p>Your house gets a plot on the city streets, next to the others. Everyone visiting sees each other.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-title">
+      <div><div class="kicker" style="color:var(--terra)">Showcases</div><h2>Houses you can walk through</h2></div>
+      <a class="btn light" href="/showcases">See all</a>
+    </div>
+    <div class="grid" id="latest"></div>
+  </div>
+</section>
+
+<section class="band blueprint">
+  <div class="wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center">
+    <div>
+      <div class="kicker">Explore together</div>
+      <h2 style="font-size:34px;margin:8px 0 12px">One city, every house, everyone</h2>
+      <p style="color:#c6d6ee;font-size:18px">Every house built on Blockprint stands in the same city, side by side along its streets.
+        Walk from one house to the next, climb onto the roof terraces, and meet whoever else is visiting. No account and no game install needed.</p>
+      <a class="btn" href="/city">Enter the city</a>
+    </div>
+    <div class="panel" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#e6efff">
+      <div class="kicker">Controls</div>
+      <p style="margin:.6em 0 0;line-height:2">Click the view &nbsp;·&nbsp; <b>W A S D</b> to walk &nbsp;·&nbsp; mouse to look<br>
+        <b>Space</b> twice to fly &nbsp;·&nbsp; <b>T</b> to chat &nbsp;·&nbsp; <b>Esc</b> to release the mouse</p>
+    </div>
+  </div>
+</section>
+
+<script src="/assets/site.js"></script>
+<script>
+header('home')
+;(async () => {
+  const list = await api('/api/showcases').catch(() => [])
+  document.getElementById('latest').innerHTML = list.slice(0, 3).map(showcaseCard).join('') ||
+    '<p class="muted">No showcase yet. <a href="/create">Build the first one.</a></p>'
+  const hero = list.find(s => s.featured) || list[0]
+  if (!hero) return
+  const img = document.getElementById('heroImg'), sw = document.getElementById('heroSwitch')
+  const views = [['Outside', 'iso.png']].concat(Array.from({ length: hero.levels || 0 }, (_, i) => [i === 0 ? 'Ground floor' : 'Floor ' + i, `iso_level${i}.png`]))
+  let k = 0, timer
+  function show (i) {
+    k = i; img.src = `/api/showcases/${hero.id}/files/${views[i][1]}`
+    sw.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === i))
+  }
+  sw.innerHTML = views.map((v, i) => `<button type="button">${v[0]}</button>`).join('')
+  sw.querySelectorAll('button').forEach((b, i) => b.onclick = () => { clearInterval(timer); show(i) })
+  img.onclick = () => location.href = '/s/' + hero.id; img.style.cursor = 'pointer'
+  show(0); timer = setInterval(() => show((k + 1) % views.length), 3500)
+})()
+</script>
+</body>
+</html>

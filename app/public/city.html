@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The city · Blockprint</title>
+<link rel="stylesheet" href="/assets/site.css"><link rel="icon" href="/favicon.png">
+<style>
+  .citywrap { display: grid; grid-template-columns: 1fr 420px; gap: 20px; padding: 22px 0 50px; }
+  @media (max-width: 1100px) { .citywrap { grid-template-columns: 1fr; } }
+  .explorer { position: relative; border-radius: 18px; overflow: hidden; height: min(74vh, 760px); min-height: 480px; box-shadow: 0 20px 40px rgba(12,35,64,.25); }
+  .explorer iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .gate { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #eaf2ff; padding: 24px; }
+  .gate .form { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+  .gate input { width: 220px; }
+  .map { border-radius: 18px; padding: 12px; position: sticky; top: 80px; }
+  .map svg { width: 100%; height: auto; display: block; }
+  .map .plot { fill: rgba(232,213,163,.12); stroke: #e8d5a3; stroke-width: 1; cursor: pointer; transition: fill .15s; }
+  .map .plot:hover, .map .plot.sel { fill: rgba(226,115,74,.45); }
+  .map .plot.edit { stroke: #3ccf8e; stroke-dasharray: 4 2; }
+  .map .road { fill: #3a4656; } .map .walk { fill: #6b7787; } .map .plaza { fill: #c9b57e; }
+  .map text { fill: #eaf2ff; font: 600 8px system-ui; pointer-events: none; }
+  .map .me { fill: #e2734a; stroke: #fff; stroke-width: 1.5; } .map .other { fill: #3ccf8e; stroke: #0c2340; stroke-width: 1; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #c6d6ee; margin-top: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .peek { margin-top: 10px; display: none; gap: 12px; align-items: center; background: rgba(255,255,255,.06); border-radius: 12px; padding: 10px; color: #eaf2ff; }
+  .peek img { width: 120px; }
+</style>
+</head>
+<body>
+<section class="blueprint" style="padding:34px 0 24px">
+  <div class="wrap">
+    <div class="kicker">One world for everyone</div>
+    <h1 style="font-size:42px;margin:6px 0 4px">The city</h1>
+    <p style="color:#c6d6ee;max-width:760px;margin:0">Every house on Blockprint stands here as a neighbour on the same streets. Walk from house to house,
+      and meet whoever else is visiting. <span id="count"></span></p>
+  </div>
+</section>
+<div class="wrap citywrap">
+  <main>
+    <div class="explorer blueprint" id="explorer">
+      <div class="gate" id="gate"><div>
+        <svg width="90" height="90" viewBox="0 0 48 48" fill="none" stroke="#e8d5a3" stroke-width="2"><path d="M6 40h36M10 40V22l8-6 8 6v18M26 40V14l8-6 8 6v26"/><path d="M14 30h4v10h-4zM30 20h4M30 26h4M30 32h4"/></svg>
+        <h2 style="margin:10px 0 4px" id="gateTitle">Enter the city</h2>
+        <div style="color:#c6d6ee" id="gateText">You arrive on the plaza. Pick a house on the map to land in front of it instead.</div>
+        <div class="form"><input type="text" id="name" maxlength="16" aria-label="Your explorer name"><button class="btn" id="enter">Enter</button></div>
+        <div class="small" style="color:#9fb3d1;margin-top:10px">Click the view, then W A S D to walk, mouse to look, Space twice to fly, T to chat, Esc to release the mouse.</div>
+      </div></div>
+    </div>
+  </main>
+  <aside>
+    <div class="map blueprint">
+      <div id="mapsvg"></div>
+      <div class="legend"><span><i style="background:#e2734a"></i>you</span><span><i style="background:#3ccf8e"></i>other explorers</span><span><i style="border:1.5px dashed #3ccf8e;border-radius:2px"></i>building allowed</span></div>
+      <div class="peek" id="peek"><img id="peekImg" alt=""><div><b id="peekTitle"></b><div class="small" id="peekBy" style="color:#c6d6ee"></div>
+        <div style="display:flex;gap:6px;margin-top:8px"><button class="btn small" id="peekGo">Go there</button><a class="btn small ghost" id="peekPage" style="color:#eaf2ff">House page</a></div></div></div>
+    </div>
+  </aside>
+</div>
+<script src="/assets/site.js"></script>
+<script>
+header('city')
+let M, sel = new URLSearchParams(location.search).get('house'), joined = false, myName = explorerName()
+document.getElementById('name').value = myName
+const S = 2.4   // px per block on the map
+function toX (x) { return (x - M.bounds.x0) * S } function toY (z) { return (z - M.bounds.z0) * S }
+async function load () {
+  M = await api('/api/city')
+  fitBounds()
+  document.getElementById('count').textContent = `${M.plots.length} houses · ${M.online} explorer${M.online === 1 ? '' : 's'} inside right now.`
+  draw()
+  if (sel) pick(sel)
+}
+function fitBounds () {   // fit the map to what is built (plaza + houses), not the whole reserved rows
+  const xs = [M.plaza.x0, M.plaza.x1, ...M.plots.map(p => p.x + p.w)], zs = [M.plaza.z0, ...M.plots.map(p => p.z + p.d), M.rows[0].z + 10]
+  M.bounds = { x0: Math.min(...xs) - 4, x1: Math.max(...xs) + 14, z0: Math.min(...zs) - 4, z1: Math.max(...zs) + 4 }
+}
+function draw () {
+  const W = (M.bounds.x1 - M.bounds.x0) * S, H = (M.bounds.z1 - M.bounds.z0) * S
+  let g = ''
+  for (const r of M.rows) {
+    g += `<rect class="walk" x="${toX(M.avenue[0])}" y="${toY(r.street[0])}" width="${(M.bounds.x1 - M.avenue[0]) * S}" height="${(r.street[1] - r.street[0] + 1) * S}"/>`
+    g += `<rect class="road" x="${toX(M.avenue[0])}" y="${toY(r.street[0] + 3)}" width="${(M.bounds.x1 - M.avenue[0]) * S}" height="${12 * S}"/>`
+  }
+  const lastZ = M.rows[M.rows.length - 1].z + 4
+  g += `<rect class="walk" x="${toX(M.avenue[0])}" y="${toY(M.plaza.z1)}" width="${(M.avenue[1] - M.avenue[0] + 1) * S}" height="${(lastZ - M.plaza.z1) * S}"/>`
+  g += `<rect class="road" x="${toX(M.avenue[0] + 3)}" y="${toY(M.plaza.z1)}" width="${12 * S}" height="${(lastZ - M.plaza.z1) * S}"/>`
+  g += `<rect class="plaza" x="${toX(M.plaza.x0)}" y="${toY(M.plaza.z0)}" width="${(M.plaza.x1 - M.plaza.x0 + 1) * S}" height="${(M.plaza.z1 - M.plaza.z0 + 1) * S}" rx="4"/>`
+  g += `<text x="${toX(M.plaza.x0) + 6}" y="${toY(M.plaza.z0) + 14}" style="fill:#0c2340;font-weight:700">Plaza</text>`
+  for (const p of M.plots) {
+    g += `<rect class="plot ${p.id === sel ? 'sel' : ''} ${p.editable ? 'edit' : ''}" data-id="${esc(p.id)}" x="${toX(p.x)}" y="${toY(p.z)}" width="${p.w * S}" height="${p.d * S}" rx="2"><title>${esc(p.title)}</title></rect>`
+    const n = Math.max(4, Math.floor(p.w * S / 4.6)), t = p.title
+    g += `<text x="${toX(p.x) + 3}" y="${toY(p.z) + 10}">${esc(t.slice(0, n))}</text>` + (t.length > n ? `<text x="${toX(p.x) + 3}" y="${toY(p.z) + 19}">${esc(t.slice(n, 2 * n))}</text>` : '')
+  }
+  for (const pl of M.players) {
+    const me = pl.name.toLowerCase() === myName.toLowerCase()
+    g += `<circle class="${me ? 'me' : 'other'}" cx="${toX(pl.pos[0])}" cy="${toY(pl.pos[2])}" r="${me ? 5 : 4}"><title>${esc(pl.name)}</title></circle>`
+    if (!me) g += `<text x="${toX(pl.pos[0]) + 6}" y="${toY(pl.pos[2]) + 3}">${esc(pl.name)}</text>`
+  }
+  document.getElementById('mapsvg').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of the city">${g}</svg>`
+  document.querySelectorAll('.plot').forEach(r => r.onclick = () => pick(r.dataset.id))
+}
+function pick (id) {
+  const p = M.plots.find(q => q.id === id); if (!p) return
+  sel = id; draw()
+  const pk = document.getElementById('peek'); pk.style.display = 'flex'
+  document.getElementById('peekImg').src = `/api/showcases/${encodeURIComponent(id)}/files/iso.png`
+  document.getElementById('peekTitle').textContent = p.title; document.getElementById('peekBy').textContent = 'by ' + p.author
+  document.getElementById('peekPage').href = '/s/' + encodeURIComponent(id)
+  document.getElementById('peekGo').textContent = joined ? 'Reload there' : 'Arrive here'
+  document.getElementById('gateTitle').textContent = 'Visit ' + p.title
+  document.getElementById('gateText').textContent = 'You will land on the sidewalk in front of it.'
+}
+document.getElementById('peekGo').onclick = () => enter(true)
+async function enter (force) {
+  const n = document.getElementById('name').value.trim() || myName
+  if (!/^[A-Za-z0-9_]{3,16}$/.test(n)) { document.getElementById('gateText').textContent = 'Names use 3 to 16 letters, digits or _ (no spaces).'; return }
+  myName = n; localStorage.setItem('bp_name', n)
+  await api('/api/city/visit', { method: 'POST', body: JSON.stringify({ username: n, id: sel }) })
+  const fr = document.createElement('iframe'); fr.allow = 'fullscreen; pointer-lock; gamepad'; fr.title = 'The city'
+  fr.src = `/mc/?ip=city&version=1.21.4&proxy=${encodeURIComponent(location.origin)}&username=${encodeURIComponent(n)}&autoConnect=true&lockConnect=true&setting=renderDistance:6`
+  const ex = document.getElementById('explorer'); ex.innerHTML = ''; ex.append(fr); joined = true
+}
+document.getElementById('enter').onclick = () => enter()
+document.getElementById('name').addEventListener('keydown', e => e.key === 'Enter' && enter())
+load(); setInterval(async () => { const c = await api('/api/city').catch(() => null); if (c) { Object.assign(M, { players: c.players, online: c.online, plots: c.plots, rows: c.rows }); fitBounds(); draw(); document.getElementById('count').textContent = `${M.plots.length} houses · ${M.online} explorer${M.online === 1 ? '' : 's'} inside right now.` } }, 3000)
+</script>
+</body>
+</html>
