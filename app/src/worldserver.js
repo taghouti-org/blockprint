@@ -93,6 +93,8 @@ function startWorldServer ({ worldDir, port, title = 'Blockprint City', maxPlaye
       }
       return emit(name, data, ...rest)
     }
+    // arrive with a building palette (the full item list is in the inventory too)
+    setTimeout(() => givePalette(player), 2500)
     // land in front of the house the visitor chose on the website (or the plaza)
     player.once('spawned', () => arrive(player))
     setTimeout(() => arrive(player), 1500)
@@ -100,6 +102,26 @@ function startWorldServer ({ worldDir, port, title = 'Blockprint City', maxPlaye
     setTimeout(report, 2000)
     client.once('end', () => { serv.online--; setTimeout(report, 500) })
   })
+
+  const Item = require('prismarine-item')('1.21.4')
+  const PALETTE = [
+    // hotbar (slots 36-44)
+    'white_concrete', 'smooth_sandstone', 'oak_planks', 'glass_pane', 'oak_door', 'oak_stairs', 'sea_lantern', 'light_blue_glazed_terracotta', 'bricks',
+    // inventory (slots 9-35)
+    'stone_bricks', 'polished_andesite', 'smooth_quartz', 'terracotta', 'white_terracotta', 'cut_sandstone', 'birch_planks', 'spruce_planks', 'dark_oak_planks',
+    'smooth_stone_slab', 'oak_slab', 'quartz_stairs', 'spruce_trapdoor', 'warped_trapdoor', 'iron_door', 'oak_fence', 'glass', 'lantern',
+    'blue_concrete', 'light_blue_concrete', 'red_concrete', 'yellow_concrete', 'green_concrete', 'white_wool', 'blue_carpet', 'flower_pot', 'oak_leaves'
+  ]
+  function givePalette (player) {
+    try {
+      if (player.gameMode !== 1 || player.inventory.slots.some(Boolean)) return
+      PALETTE.forEach((name, i) => {
+        const it = registry.itemsByName[name]; if (!it) return
+        const slot = i < 9 ? 36 + i : 9 + (i - 9)
+        player.inventory.updateSlot(slot, new Item(it.id, it.stackSize || 64))
+      })
+    } catch (e) { console.error('palette error', e.message) }
+  }
 
   function arrive (player) {
     if (player._arrived) return

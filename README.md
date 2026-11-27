@@ -35,6 +35,7 @@ other houses, like neighbours on the same street.
 | **Lighting** | Worlds are written with real sky light and block light: ceiling lights, bedside lanterns and street lamps light the rooms and streets, daylight comes in through windows, doors and courtyards. |
 | **Take it home** | Download any house as a Minecraft Java world (1.21.4, upgraded automatically by newer versions) or as a datapack. |
 | **Admin** | Enable or disable houses (live), allow visitors to build on a given plot, reset a house, rebuild, change the answers, feature on the home page, restart the city. |
+| **Building** | Where the admin allows it, visitors build in creative mode: they arrive with a palette of 36 building blocks, and the inventory (E) opens with the full searchable list of every item. Building only works on the allowed plots; the rest of the city is protected. |
 
 ## Tour
 
@@ -178,7 +179,8 @@ node app/src/world.js build/blocks.json build/world/MyHouse   # a Java world + z
 ```bash
 cd app
 npm test              # 13 unit tests: every style x scale compiles to a valid world, questionnaire sources, rotation, world round-trip
-npm run test:e2e      # browsers: two visitors meet in the city, admin controls with a scripted player, every page on desktop and phone,
+npm run test:e2e      # browsers: two visitors meet in the city, admin controls with a scripted player, building with the palette
+                      # (allowed plot only), every page on desktop and phone,
                       # and on an emulated iPhone: no page scrolls sideways, the city opens full screen with touch controls
 npm run test:create   # full upload -> Claude reading -> questionnaire -> build in the browser (spends one real API call)
 node scripts/screenshots.js   # regenerates docs/screenshots

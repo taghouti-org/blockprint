@@ -223,7 +223,9 @@ app.get('/mc/config.json', (req, res) => {   // our own client config: no third-
 app.get('/config.json', (req, res) => res.redirect('/mc/config.json'))
 app.get(['/mc', '/mc/', '/mc/index.html'], (req, res) => {
   if (req.path === '/mc') return res.redirect(301, '/mc/' + (req.url.slice(3) || ''))
-  const html = fs.readFileSync(path.join(MWC, 'index.html'), 'utf8').replace(/<script[^>]*cloud\.umami\.is[^>]*><\/script>/g, '')
+  // open the full item list ("Show All") whenever the inventory opens: every item is one click away in creative
+  const showAll = `<script>new MutationObserver(() => { for (const b of document.querySelectorAll('button')) { if (/^Show All \\d+ items?$/.test(b.textContent.trim()) && !b.dataset.auto) { b.dataset.auto = 1; b.click() } } }).observe(document.documentElement, { childList: true, subtree: true })</script>`
+  const html = fs.readFileSync(path.join(MWC, 'index.html'), 'utf8').replace(/<script[^>]*cloud\.umami\.is[^>]*><\/script>/g, '').replace('</body>', showAll + '</body>')
   res.type('html').send(html)
 })
 app.use('/mc', express.static(MWC, { index: false }))
