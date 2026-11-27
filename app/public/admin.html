@@ -49,16 +49,16 @@ async function list () {
   main.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
       <div class="muted">${rows.length} houses · <span id="cityOnline"></span></div>
       <div style="display:flex;gap:8px"><a class="btn small blue" href="/create">New showcase</a><button class="btn small light" id="restartCity" title="Rebuild the city from every published house; everyone is disconnected for a few seconds">Restart the city</button><button class="btn small light" id="logout">Log out</button></div></div>
-    <div style="overflow-x:auto"><table>
+    <div style="overflow-x:auto"><table class="cards">
       <thead><tr><th></th><th>Showcase</th><th>Status</th><th>Enabled</th><th>Visitors can build on its plot</th><th>Featured</th><th>Inside now</th><th>Actions</th></tr></thead>
       <tbody>${rows.map(r => `<tr>
-        <td>${r.status === 'ready' ? `<img src="/api/showcases/${esc(r.id)}/files/iso.png" alt="">` : ''}</td>
+        <td class="thumb-cell">${r.status === 'ready' ? `<img src="/api/showcases/${esc(r.id)}/files/iso.png" alt="">` : ''}</td>
         <td><a href="/s/${esc(r.id)}"><b>${esc(r.title)}</b></a><br><span class="small muted">by ${esc(r.author)} · ${new Date(r.createdAt).toLocaleDateString()}${r.readUsage ? ` · read: ${r.readUsage.input + r.readUsage.output} tokens` : ''}</span></td>
-        <td><span class="st ${esc(r.status)}">${esc(r.status)}</span>${r.error ? `<br><span class="small" style="color:var(--bad)">${esc(r.error).slice(0, 120)}</span>` : ''}</td>
-        <td>${tog(r.id, 'enabled', r.enabled, 'Enabled: visible in the gallery and open to explorers')}</td>
-        <td>${tog(r.id, 'editable', r.editable, 'Visitors can place and break blocks')}</td>
-        <td>${tog(r.id, 'featured', r.featured, 'Featured on the home page')}</td>
-        <td>${r.online || 0}${r.running ? ' <span class="small muted">(world running)</span>' : ''}</td>
+        <td data-label="Status"><span class="st ${esc(r.status)}">${esc(r.status)}</span>${r.error ? `<br><span class="small" style="color:var(--bad)">${esc(r.error).slice(0, 120)}</span>` : ''}</td>
+        <td data-label="Enabled">${tog(r.id, 'enabled', r.enabled, 'Enabled: visible in the gallery and open to explorers')}</td>
+        <td data-label="Visitors can build">${tog(r.id, 'editable', r.editable, 'Visitors can place and break blocks')}</td>
+        <td data-label="Featured">${tog(r.id, 'featured', r.featured, 'Featured on the home page')}</td>
+        <td data-label="At this house now">${r.online || 0}${r.running ? ' <span class="small muted">(world running)</span>' : ''}</td>
         <td><div class="acts">
           <button class="btn small light" data-act="reset" data-id="${esc(r.id)}" title="Put the original house back on its plot: removes every change made by visitors">Reset house</button>
           ${r.status === 'ready' || r.status === 'failed' ? `<a class="btn small light" href="/create/${esc(r.id)}?edit=1" data-act="answers" data-id="${esc(r.id)}">Answers</a>` : ''}

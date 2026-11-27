@@ -9,6 +9,10 @@ class CityServer {
     this.city = city; this.resolveState = resolveState; this.log = log
     this.child = null; this.ready = null; this.players = []; this.online = 0; this.reqs = new Map(); this.seq = 0
     this.worldDir = path.join(city.dir, 'world', 'city')
+    this.dirty = false   // houses changed live: rebuild (lighting, signs) as soon as the city is empty
+    setInterval(() => {
+      if (this.dirty && this.child && this.online === 0) { this.dirty = false; this.log('[city] empty: rebuilding to refresh lighting and signs'); this.restart().catch(e => this.log('[city] rebuild failed ' + e.message)) }
+    }, 60000).unref()
   }
 
   async start ({ rebuild = true } = {}) {
@@ -79,7 +83,7 @@ class CityServer {
     if (old && (old.x !== c.plot.x || old.z !== c.plot.z)) await this.call({ type: 'clear', box: this.plotClearBox(old) })   // moved to a bigger plot
     const blocks = c.blocks.map(([x, y, z, b]) => [x, y, z, this.resolveState(b)])
     const r = await this.call({ type: 'paste', box: this.plotClearBox(c.plot), blocks })
-    this.sendRegions()
+    this.sendRegions(); this.dirty = true
     return r
   }
 
@@ -88,7 +92,7 @@ class CityServer {
     await this.port()
     await this.call({ type: 'clear', box: this.plotClearBox(p) })
     await this.call({ type: 'paste', blocks: [[p.x + 1, -59, p.z - 1, 0]] })   // its name sign
-    this.sendRegions()
+    this.sendRegions(); this.dirty = true
   }
 
   status () { return { running: !!this.child, online: this.online, players: this.players } }

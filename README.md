@@ -31,6 +31,8 @@ other houses, like neighbours on the same street.
 | **Three styles** | Traditional Tunisian (white walls, blue doors and shutters, patterned tiles), Modern, Classic wood. |
 | **One shared city** | Every published house gets a permanent plot along the city streets, next to the others, around a plaza. One multiplayer server for everyone: visitors see each other, chat, and walk from house to house. New houses appear live, without a restart. |
 | **In the browser** | No account, no game install: the 3D explorer is the open-source [minecraft-web-client](https://github.com/zardoy/minecraft-web-client). |
+| **On phones** | Every page is responsive. On a phone or tablet the explorer opens full screen with touch controls (left thumb walks, right thumb looks, buttons to jump, fly and chat). |
+| **Lighting** | Worlds are written with real sky light and block light: ceiling lights, bedside lanterns and street lamps light the rooms and streets, daylight comes in through windows, doors and courtyards. |
 | **Take it home** | Download any house as a Minecraft Java world (1.21.4, upgraded automatically by newer versions) or as a datapack. |
 | **Admin** | Enable or disable houses (live), allow visitors to build on a given plot, reset a house, rebuild, change the answers, feature on the home page, restart the city. |
 
@@ -51,6 +53,14 @@ Every house stands on its plot along the streets. The live map shows who is wher
 Furniture is placed automatically for the type of each room and the answers (who sleeps here, which equipment).
 
 ![Living room: Tunisian tiles, sofa facing the TV, rug, dining table](docs/screenshots/game-living-room.png)
+
+### On a phone
+
+<p>
+  <img src="docs/screenshots/phone-home.png" width="260" alt="Home page on a phone">
+  <img src="docs/screenshots/phone-showcase.png" width="260" alt="A house page on a phone">
+  <img src="docs/screenshots/phone-game.png" width="260" alt="The city full screen on a phone, with touch controls">
+</p>
 
 ### Every house has a showcase page
 
@@ -106,7 +116,7 @@ flowchart LR
 2. **Questionnaire** (`compile.py questions`): one card per space and per stair plus whole-house questions (style, scale, doors, street side, surroundings, roof). Each value carries its source.
 3. **Compiling** (`compile.py plan`): applies the answers; rotates so the street is north; removes empty margins Claude may have estimated around the building; snaps to the block grid; turns open ground-floor spaces along the street into a front yard with a low wall and gate; keeps outer walls open along decks and patios; cuts stair openings in the floor above; picks the side and hinge of every open door panel so it does not block anything; places furniture room by room.
 4. **Generating** (`gen.py`): builds a voxel grid (walls, floors with patterns, windows with shutters, doors, stairs with headroom, roof, parapets, lights, furniture), checks that you can walk in from the street (and opens a passage if not), and writes the previews, the isometric pictures, the datapack and the block list.
-5. **World files** (`app/src/world.js`): writes real Minecraft region files and `level.dat` directly with the Prismarine libraries (no Mojang server needed): flat ground, the house, sky light, block entities (signs).
+5. **World files** (`app/src/world.js`): writes real Minecraft region files and `level.dat` directly with the Prismarine libraries (no Mojang server needed): flat ground, the house, block entities (signs), and lighting computed by a small light engine: sky light falls down each column until a block stops it and then spreads sideways, block light spreads from every light-emitting block, both losing one level per block and stopped by opaque blocks (values from minecraft-data). The city is lit in well under a second.
 6. **The city** (`app/src/city.js`, `app/src/worlds.js`, `app/src/worldserver.js`): plots are allocated in rows along streets and never move. One [space-squid](https://github.com/zardoy/space-squid) server runs the whole city from a throwaway copy (visitors' changes are never saved; a reset or restart brings back the published houses). The website talks to it over IPC to land visitors in front of the house they chose, paste new houses live, clear disabled ones, and allow building per plot.
 7. **Proxy** (`app/src/proxy.js`): browsers cannot open TCP sockets, so the site bridges WebSocket to the city server, using the same protocol as the web client's own proxy, but it only ever connects to the city.
 
@@ -168,7 +178,8 @@ node app/src/world.js build/blocks.json build/world/MyHouse   # a Java world + z
 ```bash
 cd app
 npm test              # 13 unit tests: every style x scale compiles to a valid world, questionnaire sources, rotation, world round-trip
-npm run test:e2e      # browsers: two visitors meet in the city, admin controls with a scripted player, every page on desktop and phone
+npm run test:e2e      # browsers: two visitors meet in the city, admin controls with a scripted player, every page on desktop and phone,
+                      # and on an emulated iPhone: no page scrolls sideways, the city opens full screen with touch controls
 npm run test:create   # full upload -> Claude reading -> questionnaire -> build in the browser (spends one real API call)
 node scripts/screenshots.js   # regenerates docs/screenshots
 ```
@@ -208,7 +219,7 @@ windows with shutters), lights and furniture (`bed`, `sofa`, `table`, `desk`, `w
 - Plans without written dimensions are scaled from what Claude can recognise (car, bed and door sizes), so sizes are approximate.
 - Only rectangular, axis-aligned rooms and walls; no curved or diagonal walls, no pitched roofs.
 - Changes made by visitors (on plots where building is allowed) are not saved: a reset or a city restart brings the published house back.
-- A house added to a running city shows a blank name sign until the next city restart.
+- A house added to a running city is lit and gets its name sign when the city next rebuilds; this happens automatically as soon as nobody is inside.
 - The browser client renders a subset of Minecraft; the downloadable world is the reference.
 
 ## Credits and licenses

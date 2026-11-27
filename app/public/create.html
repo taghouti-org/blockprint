@@ -15,7 +15,8 @@
   .thumbs figure { margin: 0; width: 130px; font-size: 12px; text-align: center; color: var(--muted); }
   .thumbs img { width: 130px; height: 100px; object-fit: contain; background: #1b2430; border-radius: 8px; }
   .scan { position: relative; display: inline-block; border-radius: 14px; overflow: hidden; max-width: 100%; }
-  .scan img { display: block; max-height: 420px; }
+  .scan img { display: block; max-height: 420px; max-width: 100%; }
+  @media (max-width: 760px) { #reading { grid-template-columns: 1fr !important; } .drop { padding: 24px 14px; } .sticky-go { justify-content: stretch; } .sticky-go .btn { flex: 1; } h1#h1 { font-size: 30px !important; } }
   .scan::after { content: ""; position: absolute; left: 0; right: 0; height: 70px; top: -70px;
     background: linear-gradient(180deg, transparent, rgba(232,213,163,.55), transparent); animation: scan 2.4s linear infinite; }
   @keyframes scan { to { top: 100% } }
@@ -118,7 +119,7 @@ function reading () {
   const img = (sc.inputs || []).find(n => !/\.pdf$/i.test(n))
   if (document.getElementById('reading')) return
   const t0 = Date.now()
-  main.innerHTML = `<div id="reading" style="display:grid;grid-template-columns:auto 1fr;gap:30px;align-items:center">
+  main.innerHTML = `<div id="reading" class="split" style="grid-template-columns:minmax(0,auto) 1fr">
     ${img ? `<div class="scan"><img src="/api/showcases/${encodeURIComponent(id)}/files/${encodeURIComponent(img)}" alt="Your plan"></div>` : ''}
     <div><h2>Claude is reading your plan</h2>
       <p class="muted">Finding the rooms and their labels, the walls, the doors and windows, the stairs and the spaces open to the sky.
@@ -129,7 +130,7 @@ function reading () {
 function building () { stage(3); main.innerHTML = `<div class="panel" style="text-align:center;padding:50px"><img src="/favicon.png" style="width:48px;animation:float 1.5s infinite"><h2>Building your house block by block…</h2><p class="muted">Placing walls, doors, furniture and the street. A few seconds.</p></div>` }
 function ready () {
   stage(4)
-  main.innerHTML = `<div class="panel" style="display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center">
+  main.innerHTML = `<div class="panel split">
     <div class="blueprint" style="border-radius:14px;display:grid;place-items:center;padding:20px"><img src="/api/showcases/${encodeURIComponent(id)}/files/iso.png?t=${Date.now()}" style="max-height:340px;filter:drop-shadow(0 20px 26px rgba(0,0,0,.5))"></div>
     <div><div class="kicker" style="color:var(--terra)">Ready</div><h2 style="font-size:32px;margin:6px 0">${esc(sc.title)} is built</h2>
       <p class="muted">${sc.stats ? `${sc.stats.blocks.toLocaleString()} blocks · ${sc.stats.rooms} spaces · ${sc.stats.furniture} pieces of furniture` : ''}</p>

@@ -11,9 +11,11 @@ async function api (url, opts = {}) {
 const STYLE_LABEL = { tunisian: 'Tunisian', modern: 'Modern', classic: 'Classic wood' }
 
 function header (active) {
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches) document.documentElement.classList.add('touch')
   const h = document.createElement('header'); h.className = 'topbar'
   h.innerHTML = `<div class="wrap">
     <a class="brand" href="/">${LOGO}<span>Blockprint</span></a>
+    <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false"><span></span></button>
     <nav class="nav">
       <a href="/" class="${active === 'home' ? 'on' : ''}">Home</a>
       <a href="/city" class="${active === 'city' ? 'on' : ''}">The city</a>
@@ -23,6 +25,8 @@ function header (active) {
       <a href="/admin" class="${active === 'admin' ? 'on' : ''}" title="Admin">Admin</a>
     </nav></div>`
   document.body.prepend(h)
+  const mb = h.querySelector('.menu-btn'), nav = h.querySelector('.nav')
+  mb.onclick = () => { const o = nav.classList.toggle('open'); mb.setAttribute('aria-expanded', o) }
   const f = document.createElement('footer'); f.className = 'site blueprint'
   f.innerHTML = `<div class="wrap"><div><b style="color:#fff">Blockprint</b> · floor plans read by Claude, built block by block.</div>
     <div>3D explorer: <a style="color:#cfe0ff" href="https://github.com/zardoy/minecraft-web-client" target="_blank" rel="noopener">minecraft-web-client</a> (MIT) · not affiliated with Mojang or Microsoft.</div></div>`
@@ -52,4 +56,20 @@ function explorerName () {
   let n = localStorage.getItem('bp_name')
   if (!n || !/^[A-Za-z0-9_]{3,16}$/.test(n)) { n = 'Visitor' + Math.floor(1000 + Math.random() * 9000); localStorage.setItem('bp_name', n) }
   return n
+}
+
+// phones / tablets: the explorer takes the whole screen, with a Leave button
+const isTouch = () => document.documentElement.classList.contains('touch') || matchMedia('(hover: none), (pointer: coarse)').matches || innerWidth < 760
+function openExplorer (container, url, title) {
+  const fr = document.createElement('iframe')
+  fr.allow = 'fullscreen; pointer-lock; gamepad; screen-wake-lock'; fr.title = title; fr.src = url
+  container.innerHTML = ''; container.append(fr)
+  if (!isTouch()) return fr
+  container.classList.add('fs'); document.body.style.overflow = 'hidden'
+  const leave = document.createElement('button'); leave.className = 'fs-leave'; leave.type = 'button'; leave.textContent = '✕ Leave'
+  leave.onclick = () => location.reload()
+  document.body.append(leave)
+  try { const r = container.requestFullscreen?.(); r && r.catch(() => {}) } catch {}
+  try { screen.orientation?.lock?.('landscape').catch(() => {}) } catch {}
+  return fr
 }

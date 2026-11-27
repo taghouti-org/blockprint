@@ -1,6 +1,6 @@
 // Regenerates the README screenshots (docs/screenshots). Needs the site running and ADMIN_PASSWORD in the env.
 // node scripts/screenshots.js
-const { chromium } = require('playwright-core')
+const { chromium, devices } = require('playwright-core')
 const fs = require('fs')
 const path = require('path')
 const BASE = process.env.BASE || 'http://127.0.0.1:8090'
@@ -82,5 +82,16 @@ async function visit (name, id) {
   await look(fg, [A.x + 4, -58, A.z - 16], Math.PI * 1.22, -0.06); await gshot('game-neighbours')
   await look(fg, [A.x - 26, -12, A.z - 46], Math.PI * 1.27, -0.55); await gshot('game-city-aerial')
   await look(fg, [A.x + 6.5, -59, A.z + 10.5], 2.4, -0.25); await gshot('game-living-room')
+  // phone
+  const phone = await browser.newContext({ ...devices['iPhone 13'] })
+  const pp = await phone.newPage()
+  for (const [url, name] of [['/', 'phone-home'], ['/s/maison-tunisienne', 'phone-showcase']]) {
+    await pp.goto(BASE + url); await sleep(2500); await pp.screenshot({ path: path.join(OUT, name + '.png') }); console.log('saved', name)
+  }
+  await visit('Phone', A.id)
+  await pp.goto(`${BASE}/city?house=${A.id}`); await sleep(1500); await pp.fill('#name', 'Phone'); await pp.click('#enter')
+  const fp = await inGame(pp)
+  await fp.evaluate(([x, z]) => { const b = window.bot; b.entity.position.set(x, -58, z); b.look(Math.PI * 1.15, -0.05, true) }, [A.x + 4, A.z - 16])
+  await sleep(3000); await quiet(fp); await pp.screenshot({ path: path.join(OUT, 'phone-game.png') }); console.log('saved phone-game')
   await browser.close()
 })().catch(e => { console.error('FAILED', e); process.exit(1) })

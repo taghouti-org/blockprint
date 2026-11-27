@@ -9,6 +9,7 @@ const { execFileSync } = require('child_process')
 
 const VERSION_INFO = { '1.21.4': { dataVersion: 4189 } }
 
+let lightMs = 0
 async function buildWorld (blocksFile, outDir, version = '1.21.4') {
   const info = VERSION_INFO[version]
   if (!info) throw new Error('unsupported version ' + version)
@@ -48,20 +49,10 @@ async function buildWorld (blocksFile, outDir, version = '1.21.4') {
     c.setBlockStateId(new Vec3(((x % 16) + 16) % 16, y, ((z % 16) + 16) % 16), resolve(s))
     placed++
   }
-  // sky light: full above the highest block of each column, so viewers that read stored light show daylight
-  for (const c of chunks.values()) {
-    for (let x = 0; x < 16; x++) {
-      for (let z = 0; z < 16; z++) {
-        let top = 319
-        while (top > -64 && c.getBlockStateId(new Vec3(x, top, z)) === 0) top--
-        for (let y = top + 1; y < Math.min(320, top + 48); y++) c.setSkyLight(new Vec3(x, y, z), 15)
-      }
-    }
-  }
-  for (const [x, y, z, tag] of data.entities || []) {   // block entities (sign text...)
-    const c = chunks.get(Math.floor(x / 16) + ',' + Math.floor(z / 16))
-    if (c) c.setBlockEntity({ x: ((x % 16) + 16) % 16, y, z: ((z % 16) + 16) % 16 }, tag)
-  }
+  // lighting: real sky light and block light (lamps), so servers that send stored light show lit rooms and streets
+  const t0 = Date.now()
+  computeLight(data, chunks, { cx0, cx1, cz0, cz1, ground, resolve, registry })
+  lightMs = Date.now() - t0
   const anvil = new Anvil(path.join(outDir, 'region'))
   for (const [key, c] of chunks) {
     const [cx, cz] = key.split(',').map(Number)
@@ -70,7 +61,72 @@ async function buildWorld (blocksFile, outDir, version = '1.21.4') {
   await anvil.close?.()
 
   writeLevelDat(path.join(outDir, 'level.dat'), data, version, info)
-  return { placed, outside, chunks: chunks.size }
+  return { placed, outside, chunks: chunks.size, lightMs }
+}
+
+function computeLight (data, chunks, { cx0, cx1, cz0, cz1, ground, resolve, registry }) {
+  const X0 = cx0 * 16, Z0 = cz0 * 16, NX = (cx1 - cx0 + 1) * 16, NZ = (cz1 - cz0 + 1) * 16
+  let maxY = -61
+  for (const b of data.blocks) if (b[1] > maxY) maxY = b[1]
+  const Y0 = -64, NY = Math.min(320, maxY + 40) - Y0
+  const N = NX * NY * NZ
+  const idx = (x, y, z) => ((y * NZ) + z) * NX + x
+  const filter = new Uint8Array(N), emit = new Uint8Array(N)
+  const fCache = new Map()
+  const info = st => {
+    let v = fCache.get(st)
+    if (!v) { const b = registry.blocksByStateId[st]; v = [b ? b.filterLight : 15, b ? b.emitLight : 0]; fCache.set(st, v) }
+    return v
+  }
+  const setCell = (x, y, z, st) => {
+    const i = idx(x - X0, y - Y0, z - Z0); const [f, e] = info(st); filter[i] = f; emit[i] = e
+  }
+  const groundStates = ground.map(([y, b]) => [y, resolve(b)])
+  for (let x = 0; x < NX; x++) for (let z = 0; z < NZ; z++) for (const [y, st] of groundStates) setCell(x + X0, y, z + Z0, st)
+  for (const [x, y, z, s] of data.blocks) {
+    if (x < X0 || x >= X0 + NX || z < Z0 || z >= Z0 + NZ || y < Y0 || y >= Y0 + NY) continue
+    setCell(x, y, z, resolve(s))
+  }
+  const DIRS = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]
+  const flood = (light, queue, qlen) => {
+    let head = 0
+    while (head < qlen) {
+      const i = queue[head++]; const L = light[i]; if (L <= 1) continue
+      const x = i % NX, z = Math.floor(i / NX) % NZ, y = Math.floor(i / (NX * NZ))
+      for (const [dx, dy, dz] of DIRS) {
+        const nx = x + dx, ny = y + dy, nz = z + dz
+        if (nx < 0 || ny < 0 || nz < 0 || nx >= NX || ny >= NY || nz >= NZ) continue
+        const j = idx(nx, ny, nz); const f = filter[j]; if (f >= 15) continue
+        const nl = L - 1 - f
+        if (nl > light[j]) { light[j] = nl; queue[qlen++] = j }
+      }
+    }
+  }
+  // sky: straight down without loss until something blocks it, then spread
+  const sky = new Uint8Array(N), queue = new Int32Array(N)
+  let q = 0
+  for (let x = 0; x < NX; x++) for (let z = 0; z < NZ; z++) {
+    let cur = 15
+    for (let y = NY - 1; y >= 0; y--) {
+      const i = idx(x, y, z); cur -= filter[i]; if (cur <= 0) break
+      sky[i] = cur; queue[q++] = i
+    }
+  }
+  flood(sky, queue, q)
+  // blocks that give light (lanterns, sea lanterns...)
+  const blk = new Uint8Array(N); q = 0
+  for (let i = 0; i < N; i++) if (emit[i]) { blk[i] = emit[i]; queue[q++] = i }
+  flood(blk, queue, q)
+  for (let x = 0; x < NX; x++) for (let z = 0; z < NZ; z++) {
+    const wx = x + X0, wz = z + Z0
+    const c = chunks.get(Math.floor(wx / 16) + ',' + Math.floor(wz / 16)); if (!c) continue
+    const lx = ((wx % 16) + 16) % 16, lz = ((wz % 16) + 16) % 16
+    for (let y = 0; y < NY; y++) {
+      const i = idx(x, y, z)
+      if (sky[i]) c.setSkyLight(new Vec3(lx, y + Y0, lz), sky[i])
+      if (blk[i]) c.setBlockLight(new Vec3(lx, y + Y0, lz), blk[i])
+    }
+  }
 }
 
 function writeLevelDat (file, data, version, info) {
