@@ -25,7 +25,7 @@
     "start": "./run.sh restart",
     "stop": "./run.sh stop",
     "test": "node --test test/*.test.js",
-    "test:e2e": "node test/multiplayer.e2e.js && node test/admin.e2e.js && node test/build.e2e.js && node test/pages.e2e.js && node test/mobile.e2e.js",
+    "test:e2e": "node test/multiplayer.e2e.js && node test/admin.e2e.js && node test/build.e2e.js && node test/pick.e2e.js && node test/pages.e2e.js && node test/mobile.e2e.js",
     "test:create": "node test/create.e2e.js"
   }
 }

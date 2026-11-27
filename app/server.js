@@ -225,7 +225,23 @@ app.get(['/mc', '/mc/', '/mc/index.html'], (req, res) => {
   if (req.path === '/mc') return res.redirect(301, '/mc/' + (req.url.slice(3) || ''))
   // open the full item list ("Show All") whenever the inventory opens: every item is one click away in creative
   const showAll = `<script>new MutationObserver(() => { for (const b of document.querySelectorAll('button')) { if (/^Show All \\d+ items?$/.test(b.textContent.trim()) && !b.dataset.auto) { b.dataset.auto = 1; b.click() } } }).observe(document.documentElement, { childList: true, subtree: true })</script>`
-  const html = fs.readFileSync(path.join(MWC, 'index.html'), 'utf8').replace(/<script[^>]*cloud\.umami\.is[^>]*><\/script>/g, '').replace('</body>', showAll + '</body>')
+  // one click (or tap) on an item of the list puts a full stack of it in your hand (creative), instead of pick-up + drop
+  const pick = `<script>(() => {
+    const toast = t => { let d = document.getElementById('bp-toast'); if (!d) { d = document.createElement('div'); d.id = 'bp-toast'; d.style.cssText = 'position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:99999;background:rgba(12,35,64,.92);color:#fff;font:600 14px system-ui;padding:8px 14px;border-radius:999px;pointer-events:none;transition:opacity .3s'; document.body.append(d) } d.textContent = t; d.style.opacity = 1; clearTimeout(d._t); d._t = setTimeout(() => d.style.opacity = 0, 1600) }
+    const handler = e => {
+      const w = e.target.closest && e.target.closest('.mc-inv-jei-item-wrapper'); if (!w) return
+      const s = w.matches('[data-slot]') ? w : w.querySelector('[data-slot]')
+      const m = /^Slot -?\\d+: (.+?) ×\\d+$/.exec((s && s.getAttribute('aria-label')) || ''); if (!m) return
+      const bot = window.bot; if (!bot || !bot.game || bot.game.gameMode !== 'creative') return
+      const it = bot.registry.itemsArray.find(i => i.displayName === m[1]); if (!it || it.name === 'air') return
+      e.stopPropagation(); e.preventDefault()
+      if (e.type !== 'pointerup') return
+      bot._client.write('set_creative_slot', { slot: 36 + bot.quickBarSlot, item: { itemCount: it.stackSize || 64, itemId: it.id, addedComponentCount: 0, removedComponentCount: 0, components: [], removeComponents: [] } })
+      toast(it.displayName + ' in your hand')
+    }
+    for (const ev of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click', 'touchstart', 'touchend']) document.addEventListener(ev, handler, { capture: true, passive: false })
+  })()</script>`
+  const html = fs.readFileSync(path.join(MWC, 'index.html'), 'utf8').replace(/<script[^>]*cloud\.umami\.is[^>]*><\/script>/g, '').replace('</body>', showAll + pick + '</body>')
   res.type('html').send(html)
 })
 app.use('/mc', express.static(MWC, { index: false }))

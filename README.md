@@ -35,7 +35,7 @@ other houses, like neighbours on the same street.
 | **Lighting** | Worlds are written with real sky light and block light: ceiling lights, bedside lanterns and street lamps light the rooms and streets, daylight comes in through windows, doors and courtyards. |
 | **Take it home** | Download any house as a Minecraft Java world (1.21.4, upgraded automatically by newer versions) or as a datapack. |
 | **Admin** | Enable or disable houses (live), allow visitors to build on a given plot, reset a house, rebuild, change the answers, feature on the home page, restart the city. |
-| **Building** | Where the admin allows it, visitors build in creative mode: they arrive with a palette of 36 building blocks, and the inventory (E) opens with the full searchable list of every item. Building only works on the allowed plots; the rest of the city is protected. |
+| **Building** | Where the admin allows it, visitors build in creative mode: they arrive with a palette of 36 building blocks (`/kit` in the chat refills it), and the inventory (E) opens with the full searchable list of every item: one click, or one tap on a phone, puts a stack of it in your hand. Building only works on the allowed plots; the rest of the city is protected. |
 
 ## Tour
 

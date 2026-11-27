@@ -94,7 +94,7 @@ function startWorldServer ({ worldDir, port, title = 'Blockprint City', maxPlaye
       return emit(name, data, ...rest)
     }
     // arrive with a building palette (the full item list is in the inventory too)
-    setTimeout(() => givePalette(player), 2500)
+    for (const ms of [2500, 8000, 20000]) setTimeout(() => givePalette(player), ms)   // retry: slow clients may not be ready yet
     // land in front of the house the visitor chose on the website (or the plaza)
     player.once('spawned', () => arrive(player))
     setTimeout(() => arrive(player), 1500)
@@ -112,9 +112,9 @@ function startWorldServer ({ worldDir, port, title = 'Blockprint City', maxPlaye
     'smooth_stone_slab', 'oak_slab', 'quartz_stairs', 'spruce_trapdoor', 'warped_trapdoor', 'iron_door', 'oak_fence', 'glass', 'lantern',
     'blue_concrete', 'light_blue_concrete', 'red_concrete', 'yellow_concrete', 'green_concrete', 'white_wool', 'blue_carpet', 'flower_pot', 'oak_leaves'
   ]
-  function givePalette (player) {
+  function givePalette (player, force = false) {
     try {
-      if (player.gameMode !== 1 || player.inventory.slots.some(Boolean)) return
+      if (player._client.ended || player.gameMode !== 1 || (!force && player.inventory.slots.some(Boolean))) return
       PALETTE.forEach((name, i) => {
         const it = registry.itemsByName[name]; if (!it) return
         const slot = i < 9 ? 36 + i : 9 + (i - 9)
@@ -122,6 +122,11 @@ function startWorldServer ({ worldDir, port, title = 'Blockprint City', maxPlaye
       })
     } catch (e) { console.error('palette error', e.message) }
   }
+
+  serv.commands.add({
+    base: 'kit', info: 'refill your building blocks', usage: '/kit', onlyPlayer: true,
+    action (params, ctx) { givePalette(ctx.player, true); return 'Your building blocks are back in your inventory. Press E for every other item.' }
+  })
 
   function arrive (player) {
     if (player._arrived) return
